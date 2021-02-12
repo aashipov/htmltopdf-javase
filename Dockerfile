@@ -1,8 +1,7 @@
-FROM aashipov/roster:builder AS builder
+FROM aashipov/htmltopdf:builder AS builder
 USER root
 WORKDIR /dummy/build/
 COPY --chown=dummy:dummy ./ ./
-#COPY pom.xml .
 USER dummy
 WORKDIR /dummy/build/
 RUN mvn clean install
