@@ -173,6 +173,7 @@ public final class HtmlToPdfUtils {
          * Extract paper size and margins from URL.
          * @param url request URL
          */
+        @SuppressWarnings("java:S3776")
         public void printoutSettings(String url) {
             if (isNotEmpty(url)) {
                 if (matches(A_3_PAPER_SIZE_NAME, url)) {

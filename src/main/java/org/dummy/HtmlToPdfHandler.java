@@ -11,6 +11,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
+
 import static org.dummy.HtmlToPdfUtils.RESULT_PDF;
 import static org.dummy.HtmlToPdfUtils.htmlToPdf;
 import static org.dummy.OsUtils.*;
@@ -19,6 +21,9 @@ import static org.dummy.OsUtils.*;
  * https://stackoverflow.com/a/60584801.
  */
 public class HtmlToPdfHandler implements HttpHandler {
+
+    private static final int INTERNAL_SERVER_ERROR = 500;
+    public static final String TEXT_PLAIN = "text/plain";
 
     @Override
     public void handleRequest(HttpServerExchange exchange) throws IOException {
@@ -44,7 +49,7 @@ public class HtmlToPdfHandler implements HttpHandler {
                         Path source = formValue.getFileItem().getFile();
                         Path target = po.getWorkdir().resolve(formValue.getFileName());
                         createFile(target);
-                        copy(Files.newInputStream(source), Files.newOutputStream(target));
+                        Files.copy(source, target, StandardCopyOption.REPLACE_EXISTING);
                         deleteFilesAndDirectories(source);
                     }
                 }
@@ -59,8 +64,8 @@ public class HtmlToPdfHandler implements HttpHandler {
                 outputStream.close();
                 inputStream.close();
             } else {
-                exchange.setStatusCode(500);
-                exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, "text/plain");
+                exchange.setStatusCode(INTERNAL_SERVER_ERROR);
+                exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, TEXT_PLAIN);
                 exchange.getResponseSender().send(
                         po.getWrapper().getOutputString() + DELIMITER_NEW_LINE + po.getWrapper().getErrorString()
                 );
