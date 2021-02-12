@@ -6,7 +6,6 @@ import java.util.*;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import static org.dummy.EmptinessUtils.isNotEmpty;
 import static org.dummy.OsUtils.*;
 
@@ -26,51 +25,6 @@ public final class HtmlToPdfUtils {
      */
     private HtmlToPdfUtils() {
         //
-    }
-
-    private static String buildWkhtmltopdfCmd(PrinterOptions printerOptions) {
-        StringJoiner sj = new StringJoiner(DELIMITER_SPACE);
-        sj.add(WKHTMLTOPDF_EXECUTABLE);
-        sj.add("--enable-local-file-access");
-        sj.add("--print-media-type");
-        sj.add("--no-stop-slow-scripts");
-        sj.add("--disable-smart-shrinking");
-
-        if (isNotEmpty(printerOptions.getLeft())) {
-            sj.add("--margin-left");
-            sj.add(printerOptions.getLeft());
-        }
-        if (isNotEmpty(printerOptions.getRight())) {
-            sj.add("--margin-right");
-            sj.add(printerOptions.getRight());
-        }
-        if (isNotEmpty(printerOptions.getTop())) {
-            sj.add("--margin-top");
-            sj.add(printerOptions.getTop());
-        }
-        if (isNotEmpty(printerOptions.getBottom())) {
-            sj.add("--margin-bottom");
-            sj.add(printerOptions.getBottom());
-        }
-
-        if (isNotEmpty(printerOptions.getPaperSize())) {
-            if (isNotEmpty(printerOptions.getPaperSize().getWidth())) {
-                sj.add("--page-width");
-                sj.add(printerOptions.getPaperSize().getWidth());
-            }
-            if (isNotEmpty(printerOptions.getPaperSize().getHeight())) {
-                sj.add("--page-height");
-                sj.add(printerOptions.getPaperSize().getHeight());
-            }
-        }
-
-        if (printerOptions.isLandscape()) {
-            sj.add("--orientation");
-            sj.add("landscape");
-        }
-        sj.add(INDEX_HTML);
-        sj.add(RESULT_PDF);
-        return sj.toString();
     }
 
     /**
@@ -263,11 +217,56 @@ public final class HtmlToPdfUtils {
 
         private static Map<String, String> fillMarginNameRegexMap() {
             Map<String, String> map = new HashMap<>();
-            map.put(LEFT_MARGIN_NAME, ".*" + LEFT_MARGIN_NAME + ONE_OR_MORE_DIGITS_REGEX + ".*");
+            map.put(LEFT_MARGIN_NAME, LEFT_PARENTHESIS + LEFT_MARGIN_NAME + RIGHT_PARENTHESIS + ONE_OR_MORE_DIGITS_REGEX);
             map.put(RIGHT_MARGIN_NAME, LEFT_PARENTHESIS + RIGHT_MARGIN_NAME + RIGHT_PARENTHESIS + ONE_OR_MORE_DIGITS_GROUP);
             map.put(TOP_MARGIN_NAME, LEFT_PARENTHESIS + TOP_MARGIN_NAME + RIGHT_PARENTHESIS + ONE_OR_MORE_DIGITS_GROUP);
             map.put(BOTTOM_MARGIN_NAME, LEFT_PARENTHESIS + BOTTOM_MARGIN_NAME + RIGHT_PARENTHESIS + ONE_OR_MORE_DIGITS_GROUP);
             return map;
+        }
+
+        private static String buildWkhtmltopdfCmd(PrinterOptions printerOptions) {
+            StringJoiner sj = new StringJoiner(DELIMITER_SPACE);
+            sj.add(WKHTMLTOPDF_EXECUTABLE);
+            sj.add("--enable-local-file-access");
+            sj.add("--print-media-type");
+            sj.add("--no-stop-slow-scripts");
+            sj.add("--disable-smart-shrinking");
+
+            if (isNotEmpty(printerOptions.getLeft())) {
+                sj.add("--margin-left");
+                sj.add(printerOptions.getLeft());
+            }
+            if (isNotEmpty(printerOptions.getRight())) {
+                sj.add("--margin-right");
+                sj.add(printerOptions.getRight());
+            }
+            if (isNotEmpty(printerOptions.getTop())) {
+                sj.add("--margin-top");
+                sj.add(printerOptions.getTop());
+            }
+            if (isNotEmpty(printerOptions.getBottom())) {
+                sj.add("--margin-bottom");
+                sj.add(printerOptions.getBottom());
+            }
+
+            if (isNotEmpty(printerOptions.getPaperSize())) {
+                if (isNotEmpty(printerOptions.getPaperSize().getWidth())) {
+                    sj.add("--page-width");
+                    sj.add(printerOptions.getPaperSize().getWidth());
+                }
+                if (isNotEmpty(printerOptions.getPaperSize().getHeight())) {
+                    sj.add("--page-height");
+                    sj.add(printerOptions.getPaperSize().getHeight());
+                }
+            }
+
+            if (printerOptions.isLandscape()) {
+                sj.add("--orientation");
+                sj.add("landscape");
+            }
+            sj.add(INDEX_HTML);
+            sj.add(RESULT_PDF);
+            return sj.toString();
         }
     }
 
