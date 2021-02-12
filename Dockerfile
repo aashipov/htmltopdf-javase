@@ -1,4 +1,4 @@
-FROM aashipov/htmltopdf:builder AS builder
+FROM aashipov/htmltopdf:buildbed AS builder
 USER root
 WORKDIR /dummy/build/
 COPY --chown=dummy:dummy ./ ./
