@@ -22,6 +22,8 @@ public class HtmlToPdfHandler implements HttpHandler {
 
     private static final int INTERNAL_SERVER_ERROR = 500;
     public static final String TEXT_PLAIN = "text/plain";
+    private static final String APPLICATION_PDF = "application/pdf";
+    private static final String PDF_ATTACHED = "attachment;filename=\""+ RESULT_PDF +"\"";
 
     @Override
     public void handleRequest(HttpServerExchange exchange) throws IOException {
@@ -55,6 +57,8 @@ public class HtmlToPdfHandler implements HttpHandler {
             htmlToPdf(po);
             Path resultPdf = po.getWorkdir().resolve(RESULT_PDF);
             if (resultPdf.toFile().exists() && resultPdf.toFile().isFile()) {
+                exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, APPLICATION_PDF);
+                exchange.getResponseHeaders().put(Headers.CONTENT_DISPOSITION, PDF_ATTACHED);
                 exchange.startBlocking();
                 OutputStream outputStream = exchange.getOutputStream();
                 InputStream inputStream = Files.newInputStream(resultPdf);
