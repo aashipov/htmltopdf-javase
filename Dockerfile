@@ -1,5 +1,6 @@
 FROM aashipov/htmltopdf:buildbed AS builder
 USER root
+RUN mkdir /dummy/build/ && chown -R dummy:dummy /dummy/build/
 WORKDIR /dummy/build/
 COPY --chown=dummy:dummy ./ ./
 USER dummy
