@@ -5,14 +5,12 @@ import io.undertow.server.HttpServerExchange;
 import io.undertow.server.handlers.form.FormData;
 import io.undertow.server.handlers.form.FormDataParser;
 import io.undertow.util.Headers;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
-
 import static org.dummy.HtmlToPdfUtils.RESULT_PDF;
 import static org.dummy.HtmlToPdfUtils.htmlToPdf;
 import static org.dummy.OsUtils.*;

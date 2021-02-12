@@ -13,7 +13,6 @@ import java.util.*;
 import java.util.concurrent.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 import static org.dummy.EmptinessUtils.isEmpty;
 import static org.dummy.EmptinessUtils.isNotEmpty;
 
