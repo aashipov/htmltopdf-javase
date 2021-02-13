@@ -6,13 +6,12 @@ import io.undertow.server.handlers.form.FormDataParser;
 import io.undertow.server.handlers.form.FormParserFactory;
 import io.undertow.util.Headers;
 import io.undertow.util.Methods;
-
 import static org.dummy.HtmlToPdfHandler.TEXT_PLAIN;
 
 /**
- * Common {@link HttpHandler}.
+ * Router {@link HttpHandler}.
  */
-public class CommonHandler  implements HttpHandler {
+public class Router implements HttpHandler {
 
     private static final String HTML = "html";
     private static final String CHROMIUM = "chromium";

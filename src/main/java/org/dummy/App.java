@@ -13,7 +13,7 @@ public class App {
     public static void main(String[] args) {
         Undertow server = Undertow.builder()
                 .addHttpListener(PORT, HOST)
-                .setHandler(new CommonHandler()).build();
+                .setHandler(new Router()).build();
         server.start();
     }
 

@@ -11,6 +11,7 @@ import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import static org.dummy.EmptinessUtils.isNotEmpty;
 import static org.dummy.HtmlToPdfUtils.RESULT_PDF;
 import static org.dummy.HtmlToPdfUtils.htmlToPdf;
 import static org.dummy.OsUtils.*;
@@ -61,11 +62,20 @@ public class HtmlToPdfHandler implements HttpHandler {
                 exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, APPLICATION_PDF);
                 exchange.getResponseHeaders().put(Headers.CONTENT_DISPOSITION, PDF_ATTACHED);
                 exchange.startBlocking();
-                OutputStream outputStream = exchange.getOutputStream();
-                InputStream inputStream = Files.newInputStream(resultPdf);
-                copy(inputStream, outputStream);
-                outputStream.close();
-                inputStream.close();
+                InputStream inputStream = null;
+                OutputStream outputStream = null;
+                try {
+                    inputStream = Files.newInputStream(resultPdf);
+                    outputStream = exchange.getOutputStream();
+                    inputStream.transferTo(outputStream);
+                } finally {
+                    if (isNotEmpty(inputStream)) {
+                        inputStream.close();
+                    }
+                    if (isNotEmpty(outputStream)) {
+                        outputStream.close();
+                    }
+                }
             } else {
                 exchange.setStatusCode(INTERNAL_SERVER_ERROR);
                 exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, TEXT_PLAIN);
