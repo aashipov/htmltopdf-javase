@@ -16,6 +16,7 @@ import static org.dummy.HtmlToPdfUtils.htmlToPdf;
 import static org.dummy.OsUtils.*;
 
 /**
+ * HTML to PDF {@link HttpHandler}.
  * https://stackoverflow.com/a/60584801.
  */
 public class HtmlToPdfHandler implements HttpHandler {
