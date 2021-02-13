@@ -8,7 +8,7 @@ HAPROXY_IMAGE="haproxy"
 THIS_DIR=$(pwd)
 NODE_NAMES=("htmltopdf-javase1" "htmltopdf-javase2" "htmltopdf-javase3")
 HAPROXY=htmltopdf-javase-haproxy
-NETWORK_NAME=htmltopdf
+NETWORK_NAME=htmltopdf-javase
 VOLUMES_HAPROXY="-v /${THIS_DIR}/haproxy/:/usr/local/etc/haproxy/:ro"
 PORTS_TO_PUBLISH_HAPROXY="-p8080:8080 -p9999:9999"
 
