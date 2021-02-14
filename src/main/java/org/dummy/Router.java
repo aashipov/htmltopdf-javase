@@ -22,9 +22,16 @@ public class Router implements HttpHandler {
         if ((exchange.getRequestURL().contains(HTML) || exchange.getRequestURL().contains(CHROMIUM))
                 && exchange.getRequestMethod().equals(Methods.POST)) {
             // Parses HTTP POST form data and passes it to a handler asynchronously
-            FormDataParser parser = FormParserFactory.builder().build().createParser(exchange);
-            HtmlToPdfHandler handler = new HtmlToPdfHandler();
-            parser.parse(handler);
+            FormDataParser parser = null;
+            try {
+                parser = FormParserFactory.builder().build().createParser(exchange);
+                HtmlToPdfHandler handler = new HtmlToPdfHandler();
+                parser.parse(handler);
+            } finally {
+                if (null != parser) {
+                    parser.close();
+                }
+            }
         } else {
             exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, TEXT_PLAIN);
             exchange.getResponseSender().send(STATUS_UP);

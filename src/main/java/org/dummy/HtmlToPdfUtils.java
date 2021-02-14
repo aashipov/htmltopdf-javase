@@ -17,7 +17,7 @@ public final class HtmlToPdfUtils {
     private static final Logger LOG = Logger.getLogger(HtmlToPdfUtils.class.getSimpleName());
     private static final int MAX_EXECUTE_TIME = 600_000;
     private static final String WKHTMLTOPDF_EXECUTABLE = isLinux() ? "wkhtmltopdf" : "wkhtmltopdf.exe";
-    private static final String INDEX_HTML = "index.html";
+    public static final String INDEX_HTML = "index.html";
     public static final String RESULT_PDF = "result.pdf";
 
     /**
@@ -44,6 +44,7 @@ public final class HtmlToPdfUtils {
     public static class PrinterOptions {
 
         private static final String TMP = "tmp";
+        public static final Path TMP_DIR = Paths.get(".").resolve(TMP);
         private static final String DEFAULT_MARGIN = "20";
         private static final String MANY_SYMBOLS = ".*";
         private static final String A_3_PAPER_SIZE_NAME = MANY_SYMBOLS + "a3" + MANY_SYMBOLS;
@@ -64,7 +65,7 @@ public final class HtmlToPdfUtils {
         private String right = DEFAULT_MARGIN;
         private String top  = DEFAULT_MARGIN;
         private String bottom = DEFAULT_MARGIN;
-        private final Path workdir = Paths.get(".").resolve(TMP).resolve(getRandomUUID());
+        private final Path workdir = TMP_DIR.resolve(getRandomUUID());
         private OsCommandWrapper wrapper;
 
         /**

@@ -11,9 +11,7 @@ import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
-import static org.dummy.EmptinessUtils.isNotEmpty;
-import static org.dummy.HtmlToPdfUtils.RESULT_PDF;
-import static org.dummy.HtmlToPdfUtils.htmlToPdf;
+import static org.dummy.HtmlToPdfUtils.*;
 import static org.dummy.OsUtils.*;
 
 /**
@@ -26,6 +24,49 @@ public class HtmlToPdfHandler implements HttpHandler {
     public static final String TEXT_PLAIN = "text/plain";
     private static final String APPLICATION_PDF = "application/pdf";
     private static final String PDF_ATTACHED = "attachment;filename=\""+ RESULT_PDF +"\"";
+    private static final String NO_MULTIPART = "No multipart";
+    private static final String INDEX_HTML_NOT_FOUND = INDEX_HTML + " not found";
+
+    private static void storeParts(FormData formData, HtmlToPdfUtils.PrinterOptions po) throws IOException {
+        for (String data : formData) {
+            for (FormData.FormValue formValue : formData.get(data)) {
+                if (formValue.isFileItem()) {
+                    // Process file here
+                    Path source = formValue.getFileItem().getFile();
+                    Path target = po.getWorkdir().resolve(formValue.getFileName());
+                    createFile(target);
+                    Files.copy(source, target, StandardCopyOption.REPLACE_EXISTING);
+                    deleteFilesAndDirectories(source);
+                }
+            }
+        }
+    }
+
+    private static void convert(HttpServerExchange exchange, HtmlToPdfUtils.PrinterOptions po) throws IOException {
+        htmlToPdf(po);
+        Path resultPdf = po.getWorkdir().resolve(RESULT_PDF);
+        if (resultPdf.toFile().exists() && resultPdf.toFile().isFile()) {
+            exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, APPLICATION_PDF);
+            exchange.getResponseHeaders().put(Headers.CONTENT_DISPOSITION, PDF_ATTACHED);
+            exchange.startBlocking();
+            InputStream inputStream = null;
+            OutputStream outputStream = null;
+            try {
+                inputStream = Files.newInputStream(resultPdf);
+                outputStream = exchange.getOutputStream();
+                inputStream.transferTo(outputStream);
+            } finally {
+                if (null != inputStream) {
+                    inputStream.close();
+                }
+                if (null != outputStream) {
+                    outputStream.close();
+                }
+            }
+        } else {
+            internalServerError(exchange, po.getWrapper().getOutputString() + DELIMITER_NEW_LINE + po.getWrapper().getErrorString());
+        }
+    }
 
     @Override
     public void handleRequest(HttpServerExchange exchange) throws IOException {
@@ -44,46 +85,22 @@ public class HtmlToPdfHandler implements HttpHandler {
             po.buildOsCommandWrapper();
             createDirectory(po.getWorkdir());
             // Iterate through form data
-            for (String data : formData) {
-                for (FormData.FormValue formValue : formData.get(data)) {
-                    if (formValue.isFileItem()) {
-                        // Process file here
-                        Path source = formValue.getFileItem().getFile();
-                        Path target = po.getWorkdir().resolve(formValue.getFileName());
-                        createFile(target);
-                        Files.copy(source, target, StandardCopyOption.REPLACE_EXISTING);
-                        deleteFilesAndDirectories(source);
-                    }
-                }
-            }
-            htmlToPdf(po);
-            Path resultPdf = po.getWorkdir().resolve(RESULT_PDF);
-            if (resultPdf.toFile().exists() && resultPdf.toFile().isFile()) {
-                exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, APPLICATION_PDF);
-                exchange.getResponseHeaders().put(Headers.CONTENT_DISPOSITION, PDF_ATTACHED);
-                exchange.startBlocking();
-                InputStream inputStream = null;
-                OutputStream outputStream = null;
-                try {
-                    inputStream = Files.newInputStream(resultPdf);
-                    outputStream = exchange.getOutputStream();
-                    inputStream.transferTo(outputStream);
-                } finally {
-                    if (isNotEmpty(inputStream)) {
-                        inputStream.close();
-                    }
-                    if (isNotEmpty(outputStream)) {
-                        outputStream.close();
-                    }
-                }
+            storeParts(formData, po);
+            Path indexHtml = po.getWorkdir().resolve(INDEX_HTML);
+            if (indexHtml.toFile().exists() && indexHtml.toFile().canRead()) {
+                convert(exchange, po);
             } else {
-                exchange.setStatusCode(INTERNAL_SERVER_ERROR);
-                exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, TEXT_PLAIN);
-                exchange.getResponseSender().send(
-                        po.getWrapper().getOutputString() + DELIMITER_NEW_LINE + po.getWrapper().getErrorString()
-                );
+                internalServerError(exchange, INDEX_HTML_NOT_FOUND);
             }
             deleteFilesAndDirectories(po.getWorkdir());
+        } else {
+            internalServerError(exchange, NO_MULTIPART);
         }
+    }
+
+    private static void internalServerError(HttpServerExchange exchange, String reason) {
+        exchange.setStatusCode(INTERNAL_SERVER_ERROR);
+        exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, TEXT_PLAIN);
+        exchange.getResponseSender().send(reason);
     }
 }
