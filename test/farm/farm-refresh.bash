@@ -3,7 +3,7 @@
 # Run 3 htmltopdf containers and haproxy
 set -x
 
-HTML_TO_PDF_IMAGE="aashipov/htmltopdf-javase"
+HTML_TO_PDF_IMAGE="aashipov/htmltopdf-javase:jetty"
 HAPROXY_IMAGE="haproxy"
 THIS_DIR=$(pwd)
 NODE_NAMES=("htmltopdf-javase1" "htmltopdf-javase2" "htmltopdf-javase3")
