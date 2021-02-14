@@ -27,7 +27,7 @@ public class CommonHandler extends AbstractHandler {
     private static final String HTML = "html";
     private static final String CHROMIUM = "chromium";
     private static final String POST = "POST";
-    private static final String TEXT_PLAIN = "text/plain";
+    private static final String TEXT_PLAIN = "text/plain; charset=" + DEFAULT_CHARSET_NAME;
     private static final String STATUS_UP = "{\"status\":\"UP\"}";
     private static final String APPLICATION_PDF = "application/pdf";
     private static final String PDF_ATTACHED = "attachment;filename=\"" + RESULT_PDF + "\"";
@@ -137,7 +137,6 @@ public class CommonHandler extends AbstractHandler {
 
     private static void plainTextUtf8Response(HttpServletResponse response) {
         response.setContentType(TEXT_PLAIN);
-        response.setCharacterEncoding(DEFAULT_CHARSET_NAME);
     }
 
     private static void health(HttpServletResponse response) throws IOException {
