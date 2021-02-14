@@ -10,3 +10,5 @@ build-and-run.bash
 down.bash
 .idea
 *.iml
+.project
+.settings
