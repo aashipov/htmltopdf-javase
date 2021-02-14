@@ -10,5 +10,6 @@ build-and-run.bash
 down.bash
 .idea
 *.iml
+.classpath
 .project
 .settings
