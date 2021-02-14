@@ -6,13 +6,16 @@ import io.undertow.server.handlers.form.FormDataParser;
 import io.undertow.server.handlers.form.FormParserFactory;
 import io.undertow.util.Headers;
 import io.undertow.util.Methods;
-import static org.dummy.HtmlToPdfHandler.TEXT_PLAIN;
+
+import static io.undertow.util.StatusCodes.INTERNAL_SERVER_ERROR;
+import static org.dummy.OsUtils.DEFAULT_CHARSET_NAME;
 
 /**
  * Router {@link HttpHandler}.
  */
 public class Router implements HttpHandler {
 
+    private static final String TEXT_PLAIN = "text/plain; charset=" + DEFAULT_CHARSET_NAME;
     private static final String HTML = "html";
     private static final String CHROMIUM = "chromium";
     private static final String STATUS_UP = "{\"status\":\"UP\"}";
@@ -33,8 +36,27 @@ public class Router implements HttpHandler {
                 }
             }
         } else {
-            exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, TEXT_PLAIN);
-            exchange.getResponseSender().send(STATUS_UP);
+            health(exchange);
         }
+    }
+
+    private static void plainTextUtf8Response(HttpServerExchange exchange) {
+        exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, TEXT_PLAIN);
+    }
+
+    private static void health(HttpServerExchange exchange) {
+        plainTextUtf8Response(exchange);
+        exchange.getResponseSender().send(STATUS_UP);
+    }
+
+    /**
+     * Respond {@link io.undertow.util.StatusCodes#INTERNAL_SERVER_ERROR}.
+     * @param exchange {@link HttpServerExchange}
+     * @param reason   reason
+     */
+    public static void internalServerError(HttpServerExchange exchange, String reason) {
+        plainTextUtf8Response(exchange);
+        exchange.setStatusCode(INTERNAL_SERVER_ERROR);
+        exchange.getResponseSender().send(reason);
     }
 }

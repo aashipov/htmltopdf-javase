@@ -13,6 +13,7 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import static org.dummy.HtmlToPdfUtils.*;
 import static org.dummy.OsUtils.*;
+import static org.dummy.Router.internalServerError;
 
 /**
  * HTML to PDF {@link HttpHandler}.
@@ -20,8 +21,6 @@ import static org.dummy.OsUtils.*;
  */
 public class HtmlToPdfHandler implements HttpHandler {
 
-    private static final int INTERNAL_SERVER_ERROR = 500;
-    public static final String TEXT_PLAIN = "text/plain";
     private static final String APPLICATION_PDF = "application/pdf";
     private static final String PDF_ATTACHED = "attachment;filename=\""+ RESULT_PDF +"\"";
     private static final String NO_MULTIPART = "No multipart";
@@ -96,11 +95,5 @@ public class HtmlToPdfHandler implements HttpHandler {
         } else {
             internalServerError(exchange, NO_MULTIPART);
         }
-    }
-
-    private static void internalServerError(HttpServerExchange exchange, String reason) {
-        exchange.setStatusCode(INTERNAL_SERVER_ERROR);
-        exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, TEXT_PLAIN);
-        exchange.getResponseSender().send(reason);
     }
 }
