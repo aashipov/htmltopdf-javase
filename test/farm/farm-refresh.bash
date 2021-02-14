@@ -11,6 +11,7 @@ HAPROXY=htmltopdf-javase-haproxy
 NETWORK_NAME=htmltopdf-javase
 VOLUMES_HAPROXY="-v /${THIS_DIR}/haproxy/:/usr/local/etc/haproxy/:ro"
 PORTS_TO_PUBLISH_HAPROXY="-p8080:8080 -p9999:9999"
+MEMORY_LIMIT="256m"
 
 docker pull ${HTML_TO_PDF_IMAGE}
 docker pull ${HAPROXY_IMAGE}
@@ -20,7 +21,7 @@ docker network create -d bridge ${NETWORK_NAME}
 
 for node_name in "${NODE_NAMES[@]}"
 do
-    docker run -d --name=${node_name} --hostname=${node_name} --net=${NETWORK_NAME} ${HTML_TO_PDF_IMAGE}
+    docker run -d --memory=${MEMORY_LIMIT} --memory-swap=${MEMORY_LIMIT} --name=${node_name} --hostname=${node_name} --net=${NETWORK_NAME} ${HTML_TO_PDF_IMAGE}
 done
 
 docker run -d --name=${HAPROXY} --hostname=${HAPROXY} --net=${NETWORK_NAME} ${PORTS_TO_PUBLISH_HAPROXY} ${VOLUMES_HAPROXY} ${HAPROXY_IMAGE}
