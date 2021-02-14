@@ -19,6 +19,7 @@ import static org.dummy.OsUtils.*;
 
 /**
  * Common {@link AbstractHandler}.
+ * @see <a href="https://github.com/jetty-project/embedded-jetty-cookbook">Jetty Cookbook</a>
  */
 public class CommonHandler extends AbstractHandler {
 
@@ -33,6 +34,7 @@ public class CommonHandler extends AbstractHandler {
     private static final String INDEX_HTML_NOT_FOUND = INDEX_HTML + " not found";
     private static final String NO_MULTIPART = "No multipart";
     private static final int INTERNAL_SERVER_ERROR = 500;
+    private static final String CONTENT_DISPOSITION = "Content-Disposition";
 
     private MultipartConfigElement multipartConfig;
 
@@ -91,7 +93,7 @@ public class CommonHandler extends AbstractHandler {
         Path resultPdf = po.getWorkdir().resolve(RESULT_PDF);
         if (resultPdf.toFile().exists() && resultPdf.toFile().isFile()) {
             response.setContentType(APPLICATION_PDF);
-            response.setHeader("Content-Disposition", PDF_ATTACHED);
+            response.setHeader(CONTENT_DISPOSITION, PDF_ATTACHED);
             InputStream inputStream = null;
             OutputStream outputStream = null;
             try {
