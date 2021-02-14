@@ -36,7 +36,7 @@ public class CommonHandler extends AbstractHandler {
     private static final int INTERNAL_SERVER_ERROR = 500;
     private static final String CONTENT_DISPOSITION = "Content-Disposition";
 
-    private MultipartConfigElement multipartConfig;
+    private final MultipartConfigElement multipartConfig;
 
     /**
      * Constructor.
