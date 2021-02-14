@@ -6,7 +6,6 @@ import io.undertow.server.handlers.form.FormDataParser;
 import io.undertow.server.handlers.form.FormParserFactory;
 import io.undertow.util.Headers;
 import io.undertow.util.Methods;
-
 import static io.undertow.util.StatusCodes.INTERNAL_SERVER_ERROR;
 import static org.dummy.OsUtils.DEFAULT_CHARSET_NAME;
 
