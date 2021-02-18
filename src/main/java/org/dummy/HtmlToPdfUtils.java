@@ -28,17 +28,6 @@ public final class HtmlToPdfUtils {
     }
 
     /**
-     * HTML to PDF.
-     * @param printerOptions {@link PrinterOptions}
-     */
-    public static void htmlToPdf(PrinterOptions printerOptions) {
-        executeAsync(printerOptions.getWrapper());
-        if (!printerOptions.getWrapper().isOK()) {
-            LOG.info(printerOptions.getWrapper().getOutputString() + DELIMITER_NEW_LINE + printerOptions.getWrapper().getErrorString());
-        }
-    }
-
-    /**
      * Printer options.
      */
     public static class PrinterOptions {
@@ -73,6 +62,16 @@ public final class HtmlToPdfUtils {
          */
         public PrinterOptions() {
             //
+        }
+
+        /**
+         * HTML to PDF.
+         */
+        public void htmlToPdf() {
+            executeAsync(this.getWrapper());
+            if (!this.getWrapper().isOK()) {
+                LOG.info(this.getWrapper().getOutputString() + DELIMITER_NEW_LINE + this.getWrapper().getErrorString());
+            }
         }
 
         public PaperSize getPaperSize() {

@@ -42,7 +42,7 @@ public class HtmlToPdfHandler implements HttpHandler {
     }
 
     private static void convert(HttpServerExchange exchange, HtmlToPdfUtils.PrinterOptions po) throws IOException {
-        htmlToPdf(po);
+        po.htmlToPdf();
         Path resultPdf = po.getWorkdir().resolve(RESULT_PDF);
         if (resultPdf.toFile().exists() && resultPdf.toFile().isFile()) {
             exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, APPLICATION_PDF);
