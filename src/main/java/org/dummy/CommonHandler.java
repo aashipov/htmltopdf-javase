@@ -89,7 +89,7 @@ public class CommonHandler extends AbstractHandler {
     }
 
     private static void convert(HttpServletResponse response, HtmlToPdfUtils.PrinterOptions po) throws IOException {
-        htmlToPdf(po);
+        po.htmlToPdf();
         Path resultPdf = po.getWorkdir().resolve(RESULT_PDF);
         if (resultPdf.toFile().exists() && resultPdf.toFile().isFile()) {
             response.setContentType(APPLICATION_PDF);
@@ -120,7 +120,6 @@ public class CommonHandler extends AbstractHandler {
             HtmlToPdfUtils.PrinterOptions po = new HtmlToPdfUtils.PrinterOptions();
             String url = request.getRequestURI();
             po.printoutSettings(url);
-            po.buildOsCommandWrapper();
             createDirectory(po.getWorkdir());
             storeParts(request, po);
             Path indexHtml = po.getWorkdir().resolve(INDEX_HTML);
