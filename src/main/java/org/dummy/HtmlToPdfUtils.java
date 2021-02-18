@@ -68,6 +68,7 @@ public final class HtmlToPdfUtils {
          * HTML to PDF.
          */
         public void htmlToPdf() {
+            this.buildOsCommandWrapper();
             executeAsync(this.getWrapper());
             if (!this.getWrapper().isOK()) {
                 LOG.info(this.getWrapper().getOutputString() + DELIMITER_NEW_LINE + this.getWrapper().getErrorString());
@@ -136,8 +137,8 @@ public final class HtmlToPdfUtils {
             return wrapper;
         }
 
-        public PrinterOptions buildOsCommandWrapper() {
-            this.wrapper = new OsUtils.OsCommandWrapper(buildWkhtmltopdfCmd(this));
+        private PrinterOptions buildOsCommandWrapper() {
+            this.wrapper = new OsUtils.OsCommandWrapper(this.buildWkhtmltopdfCmd());
             this.wrapper.setWorkdir(this.workdir).setMaxExecuteTime(MAX_EXECUTE_TIME);
             return this;
         }
@@ -225,7 +226,7 @@ public final class HtmlToPdfUtils {
             return map;
         }
 
-        private static String buildWkhtmltopdfCmd(PrinterOptions printerOptions) {
+        private String buildWkhtmltopdfCmd() {
             StringJoiner sj = new StringJoiner(DELIMITER_SPACE);
             sj.add(WKHTMLTOPDF_EXECUTABLE);
             sj.add("--enable-local-file-access");
@@ -233,35 +234,35 @@ public final class HtmlToPdfUtils {
             sj.add("--no-stop-slow-scripts");
             sj.add("--disable-smart-shrinking");
 
-            if (isNotEmpty(printerOptions.getLeft())) {
+            if (isNotEmpty(this.getLeft())) {
                 sj.add("--margin-left");
-                sj.add(printerOptions.getLeft());
+                sj.add(this.getLeft());
             }
-            if (isNotEmpty(printerOptions.getRight())) {
+            if (isNotEmpty(this.getRight())) {
                 sj.add("--margin-right");
-                sj.add(printerOptions.getRight());
+                sj.add(this.getRight());
             }
-            if (isNotEmpty(printerOptions.getTop())) {
+            if (isNotEmpty(this.getTop())) {
                 sj.add("--margin-top");
-                sj.add(printerOptions.getTop());
+                sj.add(this.getTop());
             }
-            if (isNotEmpty(printerOptions.getBottom())) {
+            if (isNotEmpty(this.getBottom())) {
                 sj.add("--margin-bottom");
-                sj.add(printerOptions.getBottom());
+                sj.add(this.getBottom());
             }
 
-            if (isNotEmpty(printerOptions.getPaperSize())) {
-                if (isNotEmpty(printerOptions.getPaperSize().getWidth())) {
+            if (isNotEmpty(this.getPaperSize())) {
+                if (isNotEmpty(this.getPaperSize().getWidth())) {
                     sj.add("--page-width");
-                    sj.add(printerOptions.getPaperSize().getWidth());
+                    sj.add(this.getPaperSize().getWidth());
                 }
-                if (isNotEmpty(printerOptions.getPaperSize().getHeight())) {
+                if (isNotEmpty(this.getPaperSize().getHeight())) {
                     sj.add("--page-height");
-                    sj.add(printerOptions.getPaperSize().getHeight());
+                    sj.add(this.getPaperSize().getHeight());
                 }
             }
 
-            if (printerOptions.isLandscape()) {
+            if (this.isLandscape()) {
                 sj.add("--orientation");
                 sj.add("landscape");
             }

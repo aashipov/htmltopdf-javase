@@ -81,7 +81,6 @@ public class HtmlToPdfHandler implements HttpHandler {
             HtmlToPdfUtils.PrinterOptions po = new HtmlToPdfUtils.PrinterOptions();
             String url = exchange.getRequestURL();
             po.printoutSettings(url);
-            po.buildOsCommandWrapper();
             createDirectory(po.getWorkdir());
             // Iterate through form data
             storeParts(formData, po);
