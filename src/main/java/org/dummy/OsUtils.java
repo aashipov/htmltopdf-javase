@@ -36,7 +36,6 @@ public final class OsUtils {
     public static final Charset DEFAULT_CHARSET = StandardCharsets.UTF_8;
     public static final String DEFAULT_CHARSET_NAME = DEFAULT_CHARSET.name();
     private static final String WINDOWS_1251_CHARSET_NAME = "windows-1251";
-    private static final Charset WINDOWS_1251_CHARSET = Charset.forName(WINDOWS_1251_CHARSET_NAME);
 
     private static final String OS_NAME_PROPERTY = "os.name";
     private static final String OS_VERSION_PROPERTY = "os.version";
@@ -303,7 +302,7 @@ public final class OsUtils {
      */
     private static Charset getConsoleCodepage() {
         if (isWindows()) {
-            return WINDOWS_1251_CHARSET;
+            return Charset.forName(WINDOWS_1251_CHARSET_NAME);
         } else {
             return DEFAULT_CHARSET;
         }
