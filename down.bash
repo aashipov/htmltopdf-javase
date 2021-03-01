@@ -3,7 +3,7 @@
 set - x
 
 #To ease copy-paste
-CONTAINER_NAME=htmltopdf-javase-dev
+CONTAINER_NAME=htmltopdf-javase
 
 docker stop ${CONTAINER_NAME}
 docker rm ${CONTAINER_NAME}
