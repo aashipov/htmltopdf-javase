@@ -5,7 +5,7 @@ RUN mkdir -p ${BUILD_DIR} && chown quarkus ${BUILD_DIR}
 WORKDIR ${BUILD_DIR}
 COPY --chown=quarkus ./ ./
 USER quarkus
-RUN mvn -Pnative clean package -Dmaven.wagon.http.ssl.insecure=true -Dmaven.wagon.http.ssl.allowall=true -Dmaven.wagon.http.ssl.ignore.validity.dates=true
+RUN mvn package -Dnative -Dmaven.wagon.http.ssl.insecure=true -Dmaven.wagon.http.ssl.allowall=true -Dmaven.wagon.http.ssl.ignore.validity.dates=true
 
 FROM aashipov/htmltopdf:base
 # no trailing slash
