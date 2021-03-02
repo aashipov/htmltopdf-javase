@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.dummy</groupId>
@@ -9,7 +10,6 @@
     <packaging>jar</packaging>
 
     <name>htmltopdf</name>
-    <url></url>
 
     <properties>
         <graalvm.version>21.0.0.2</graalvm.version>
@@ -42,7 +42,8 @@
                         <configuration>
                             <shadedArtifactAttached>true</shadedArtifactAttached>
                             <transformers>
-                                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                <transformer
+                                        implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                                     <mainClass>org.dummy.App</mainClass>
                                 </transformer>
                             </transformers>
@@ -86,7 +87,11 @@
                         <configuration>
                             <skip>false</skip>
                             <imageName>app</imageName>
-                            <buildArgs>--no-fallback --allow-incomplete-classpath</buildArgs>
+                            <mainClass>org.dummy.App</mainClass>
+                            <buildArgs>
+                                <buildArg>--no-fallback</buildArg>
+                                <buildArg>--allow-incomplete-classpath</buildArg>
+                            </buildArgs>
                         </configuration>
                     </plugin>
                 </plugins>

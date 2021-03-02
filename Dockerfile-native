@@ -15,4 +15,4 @@ COPY --from=builder --chown=dummy:dummy ${BUILD_DIR}/target/app /dummy/app
 EXPOSE 8080
 USER dummy
 WORKDIR /dummy
-CMD ./app -Dquarkus.http.host=0.0.0.0
+CMD ./app
