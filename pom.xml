@@ -21,7 +21,6 @@
     </properties>
 
     <dependencies>
-        <!-- https://mvnrepository.com/artifact/org.eclipse.jetty/jetty-server -->
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-server</artifactId>
@@ -88,7 +87,10 @@
                         <configuration>
                             <skip>false</skip>
                             <imageName>app</imageName>
-                            <buildArgs>--no-fallback --initialize-at-build-time</buildArgs>
+                            <buildArgs>
+                                <buildArg>--no-fallback</buildArg>
+                                <buildArg>--initialize-at-build-time</buildArg>
+                            </buildArgs>
                         </configuration>
                     </plugin>
                 </plugins>
