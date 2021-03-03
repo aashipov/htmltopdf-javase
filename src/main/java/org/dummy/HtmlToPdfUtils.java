@@ -113,7 +113,8 @@ public final class HtmlToPdfUtils {
             if (Boolean.TRUE.equals(this.getChromium())) {
                 try {
                     Page page = browser.newPage();
-                    page.setDefaultTimeout(600_000);
+                    page.setDefaultTimeout(MAX_EXECUTE_TIME);
+                    page.setDefaultNavigationTimeout(MAX_EXECUTE_TIME);
                     page.goTo(FILE_URI_PREFIX + this.getWorkdir().resolve(INDEX_HTML).toAbsolutePath());
                     page.pdf(buildChromiumPDFOptions());
                     page.close();
