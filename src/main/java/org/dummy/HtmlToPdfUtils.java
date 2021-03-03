@@ -1,11 +1,19 @@
 package org.dummy;
 
+import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import com.ruiyun.jvppeteer.core.Puppeteer;
+import com.ruiyun.jvppeteer.core.browser.Browser;
+import com.ruiyun.jvppeteer.core.page.Page;
+import com.ruiyun.jvppeteer.options.LaunchOptions;
+import com.ruiyun.jvppeteer.options.LaunchOptionsBuilder;
+import com.ruiyun.jvppeteer.options.PDFOptions;
 import static org.dummy.EmptinessUtils.isNotEmpty;
 import static org.dummy.OsUtils.*;
 
@@ -16,9 +24,39 @@ public final class HtmlToPdfUtils {
 
     private static final Logger LOG = Logger.getLogger(HtmlToPdfUtils.class.getSimpleName());
     private static final int MAX_EXECUTE_TIME = 600_000;
-    private static final String WKHTMLTOPDF_EXECUTABLE = isLinux() ? "wkhtmltopdf" : "wkhtmltopdf.exe";
+    private static final String CHROMIUM_OPTIONS = "--remote-debugging-port=9222 --headless --no-sandbox --no-zygote --disable-setuid-sandbox"
+            + " --disable-notifications --disable-geolocation --disable-infobars --disable-session-crashed-bubble --disable-dev-shm-usage"
+            + " --disable-gpu --disable-translate --disable-extensions --disable-background-networking  --disable-sync" +
+            " --disable-default-apps --hide-scrollbars --metrics-recording-only --mute-audio --no-first-run --unlimited-storage" +
+            " --safebrowsing-disable-auto-update --font-render-hinting=none";
+    private static final String WKHTMLTOPDF_EXECUTABLE = "wkhtmltopdf";
+    private static Browser browser = launchChromium();
     public static final String INDEX_HTML = "index.html";
     public static final String RESULT_PDF = "result.pdf";
+
+    /**
+     * Build headless Chromium {@link LaunchOptions}.
+     * @return {@link LaunchOptions}
+     */
+    private static LaunchOptions buildChromiumLaunchOptions() {
+        List<String> args = Arrays.asList(CHROMIUM_OPTIONS.split(DELIMITER_SPACE));
+        return (new LaunchOptionsBuilder())
+                .withIgnoreDefaultArgs(true)
+                .withArgs(args).withHeadless(true)
+                .build();
+    }
+
+    /**
+     * Start Chromium headless.
+     * @return {@link Browser}
+     */
+    private static Browser launchChromium() {
+        try {
+            return Puppeteer.launch(buildChromiumLaunchOptions());
+        } catch (IOException e) {
+            throw new IllegalStateException(e);
+        }
+    }
 
     /**
      * Constructor.
@@ -38,6 +76,7 @@ public final class HtmlToPdfUtils {
         private static final String MANY_SYMBOLS = ".*";
         private static final String A_3_PAPER_SIZE_NAME = MANY_SYMBOLS + "a3" + MANY_SYMBOLS;
         private static final String LANDSCAPE_REGEX = MANY_SYMBOLS + "landscape" + MANY_SYMBOLS;
+        private static final String CHROMIUM_REGEX = MANY_SYMBOLS + "chromium" + MANY_SYMBOLS;
         private static final String LEFT_PARENTHESIS = "(";
         private static final String RIGHT_PARENTHESIS = ")";
         private static final String ONE_OR_MORE_DIGITS_REGEX = "\\d+";
@@ -46,6 +85,8 @@ public final class HtmlToPdfUtils {
         private static final String RIGHT_MARGIN_NAME = "right";
         private static final String TOP_MARGIN_NAME = "top";
         private static final String BOTTOM_MARGIN_NAME = "bottom";
+        private static final String MILLIMETER_ACRONYM = "mm";
+        private static final String FILE_URI_PREFIX = "file://";
         private static final Map<String, String> MARGIN_NAME_TO_REGEX = fillMarginNameRegexMap();
 
         private PaperSize paperSize = PaperSize.A4;
@@ -55,6 +96,7 @@ public final class HtmlToPdfUtils {
         private String top  = DEFAULT_MARGIN;
         private String bottom = DEFAULT_MARGIN;
         private final Path workdir = TMP_DIR.resolve(getRandomUUID());
+        private Boolean chromium = Boolean.FALSE;
         private OsCommandWrapper wrapper;
 
         /**
@@ -68,10 +110,26 @@ public final class HtmlToPdfUtils {
          * HTML to PDF.
          */
         public void htmlToPdf() {
-            this.buildOsCommandWrapper();
-            executeAsync(this.getWrapper());
-            if (!this.getWrapper().isOK()) {
-                LOG.info(this.getWrapper().getOutputString() + DELIMITER_NEW_LINE + this.getWrapper().getErrorString());
+            if (Boolean.TRUE.equals(this.getChromium())) {
+                try {
+                    Page page = browser.newPage();
+                    page.setDefaultTimeout(MAX_EXECUTE_TIME);
+                    page.setDefaultNavigationTimeout(MAX_EXECUTE_TIME);
+                    page.goTo(FILE_URI_PREFIX + this.getWorkdir().resolve(INDEX_HTML).toAbsolutePath());
+                    page.pdf(buildChromiumPDFOptions());
+                    page.close();
+                } catch (IOException e) {
+                    LOG.log(Level.SEVERE, "Chromium error", e);
+                } catch (InterruptedException e) {
+                    LOG.log(Level.SEVERE, "Chromium was interrupted", e);
+                    Thread.currentThread().interrupt();
+                }
+            } else {
+                this.buildOsCommandWrapper();
+                executeAsync(this.getWrapper());
+                if (!this.getWrapper().isOK()) {
+                    LOG.info(this.getWrapper().getOutputString() + DELIMITER_NEW_LINE + this.getWrapper().getErrorString());
+                }
             }
         }
 
@@ -133,6 +191,15 @@ public final class HtmlToPdfUtils {
             return workdir;
         }
 
+        public Boolean getChromium() {
+            return chromium;
+        }
+
+        public PrinterOptions setChromium(Boolean chromium) {
+            this.chromium = chromium;
+            return this;
+        }
+
         public OsCommandWrapper getWrapper() {
             return wrapper;
         }
@@ -182,6 +249,9 @@ public final class HtmlToPdfUtils {
                 }
                 if (matches(LANDSCAPE_REGEX, url)) {
                     this.setLandscape(true);
+                }
+                if (matches(CHROMIUM_REGEX, url)) {
+                    this.setChromium(Boolean.TRUE);
                 }
                 String marginNameWithDigits;
                 String marginDigits;
@@ -269,6 +339,19 @@ public final class HtmlToPdfUtils {
             sj.add(INDEX_HTML);
             sj.add(RESULT_PDF);
             return sj.toString();
+        }
+
+        private PDFOptions buildChromiumPDFOptions() {
+            PDFOptions opts = new PDFOptions();
+            opts.setPath(this.getWorkdir().resolve(RESULT_PDF).toString());
+            opts.setLandscape(this.isLandscape());
+            opts.setWidth(this.getPaperSize().getWidth() + MILLIMETER_ACRONYM);
+            opts.setHeight(this.getPaperSize().getHeight() + MILLIMETER_ACRONYM);
+            opts.getMargin().setTop(this.getTop() + MILLIMETER_ACRONYM);
+            opts.getMargin().setRight(this.getRight() + MILLIMETER_ACRONYM);
+            opts.getMargin().setBottom(this.getBottom() + MILLIMETER_ACRONYM);
+            opts.getMargin().setLeft(this.getLeft() + MILLIMETER_ACRONYM);
+            return opts;
         }
     }
 
