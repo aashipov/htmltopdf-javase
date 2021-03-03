@@ -64,6 +64,8 @@ public final class HtmlToPdfUtils {
             execute(w);
             if (w.isOK()) {
                 return Paths.get(w.getOutput().get(0));
+            } else {
+                LOG.log(Level.INFO, w.getOutputString() + DELIMITER_NEW_LINE + w.getErrorString());
             }
         }
         throw new IllegalStateException("Cannot find Chromium executable");
