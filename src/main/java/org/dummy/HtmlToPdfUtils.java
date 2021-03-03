@@ -24,7 +24,11 @@ public final class HtmlToPdfUtils {
 
     private static final Logger LOG = Logger.getLogger(HtmlToPdfUtils.class.getSimpleName());
     private static final int MAX_EXECUTE_TIME = 600_000;
-    private static final String CHROMIUM_OPTIONS = "--remote-debugging-port=9222 --headless --no-sandbox --disable-setuid-sandbox --disable-notifications --disable-geolocation --disable-infobars --disable-session-crashed-bubble --disable-dev-shm-usage --disable-gpu --disable-translate --disable-extensions --disable-background-networking  --disable-sync --disable-default-apps --hide-scrollbars --metrics-recording-only --mute-audio --no-first-run --unlimited-storage --safebrowsing-disable-auto-update --font-render-hinting=none";
+    private static final String CHROMIUM_OPTIONS = "--remote-debugging-port=9222 --headless --no-sandbox --no-zygote --disable-setuid-sandbox"
+            + " --disable-notifications --disable-geolocation --disable-infobars --disable-session-crashed-bubble --disable-dev-shm-usage"
+            + " --disable-gpu --disable-translate --disable-extensions --disable-background-networking  --disable-sync" +
+            " --disable-default-apps --hide-scrollbars --metrics-recording-only --mute-audio --no-first-run --unlimited-storage" +
+            " --safebrowsing-disable-auto-update --font-render-hinting=none";
     private static final String WKHTMLTOPDF_EXECUTABLE = "wkhtmltopdf";
     private static Browser browser = launchChromium();
     public static final String INDEX_HTML = "index.html";
@@ -109,13 +113,14 @@ public final class HtmlToPdfUtils {
             if (Boolean.TRUE.equals(this.getChromium())) {
                 try {
                     Page page = browser.newPage();
+                    page.setDefaultTimeout(600_000);
                     page.goTo(FILE_URI_PREFIX + this.getWorkdir().resolve(INDEX_HTML).toAbsolutePath());
-                    page.pdf(buildPDFOptions());
+                    page.pdf(buildChromiumPDFOptions());
                     page.close();
                 } catch (IOException e) {
                     LOG.log(Level.SEVERE, "Chromium error", e);
                 } catch (InterruptedException e) {
-                    LOG.log(Level.SEVERE, "Chromium was interrupted");
+                    LOG.log(Level.SEVERE, "Chromium was interrupted", e);
                     Thread.currentThread().interrupt();
                 }
             } else {
@@ -335,7 +340,7 @@ public final class HtmlToPdfUtils {
             return sj.toString();
         }
 
-        private PDFOptions buildPDFOptions() {
+        private PDFOptions buildChromiumPDFOptions() {
             PDFOptions opts = new PDFOptions();
             opts.setPath(this.getWorkdir().resolve(RESULT_PDF).toString());
             opts.setLandscape(this.isLandscape());
