@@ -8,12 +8,15 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 import com.ruiyun.jvppeteer.core.Puppeteer;
 import com.ruiyun.jvppeteer.core.browser.Browser;
 import com.ruiyun.jvppeteer.core.page.Page;
 import com.ruiyun.jvppeteer.options.LaunchOptions;
 import com.ruiyun.jvppeteer.options.LaunchOptionsBuilder;
 import com.ruiyun.jvppeteer.options.PDFOptions;
+import com.ruiyun.jvppeteer.options.PageNavigateOptions;
+import static java.util.stream.Collectors.toUnmodifiableList;
 import static org.dummy.EmptinessUtils.isNotEmpty;
 import static org.dummy.OsUtils.*;
 
@@ -33,8 +36,19 @@ public final class HtmlToPdfUtils {
     private static final String CHROMIUM_EXECUTABLE_NAME = isWindows() ? "chrome" : "chromium";
     private static final String LOCATE_IN_PATH_CMD = isWindows() ? "where" : "which";
     private static Browser browser = launchChromium();
+    private static PageNavigateOptions RENDERING_DONE = buildPageNavigateOptions();
     public static final String INDEX_HTML = "index.html";
     public static final String RESULT_PDF = "result.pdf";
+
+    /**
+     * Build {@link PageNavigateOptions} for rendering to finish.
+     * @return {@link PageNavigateOptions}
+     */
+    private static PageNavigateOptions buildPageNavigateOptions() {
+        PageNavigateOptions no = new PageNavigateOptions();
+        no.setWaitUntil(Stream.of("load", "domcontentloaded", "networkidle0", "networkidle2").collect(toUnmodifiableList()));
+        return no;
+    }
 
     /**
      * Bypass jvppeteer bug on MS Windows.
@@ -134,7 +148,7 @@ public final class HtmlToPdfUtils {
                     Page page = browser.newPage();
                     page.setDefaultTimeout(MAX_EXECUTE_TIME);
                     page.setDefaultNavigationTimeout(MAX_EXECUTE_TIME);
-                    page.goTo(FILE_URI_PREFIX + this.getWorkdir().resolve(INDEX_HTML).toAbsolutePath());
+                    page.goTo(FILE_URI_PREFIX + this.getWorkdir().resolve(INDEX_HTML).toAbsolutePath(), RENDERING_DONE);
                     page.pdf(buildChromiumPDFOptions());
                     page.close();
                 } catch (IOException e) {
