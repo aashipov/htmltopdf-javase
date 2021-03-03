@@ -26,7 +26,7 @@ public final class HtmlToPdfUtils {
     private static final int MAX_EXECUTE_TIME = 600_000;
     private static final String CHROMIUM_OPTIONS = "--remote-debugging-port=9222 --headless --no-sandbox --disable-setuid-sandbox --disable-notifications --disable-geolocation --disable-infobars --disable-session-crashed-bubble --disable-dev-shm-usage --disable-gpu --disable-translate --disable-extensions --disable-background-networking  --disable-sync --disable-default-apps --hide-scrollbars --metrics-recording-only --mute-audio --no-first-run --unlimited-storage --safebrowsing-disable-auto-update --font-render-hinting=none";
     private static final String WKHTMLTOPDF_EXECUTABLE = "wkhtmltopdf";
-    private static Browser CHROMIUM = launchChromium();
+    private static Browser browser = launchChromium();
     public static final String INDEX_HTML = "index.html";
     public static final String RESULT_PDF = "result.pdf";
 
@@ -36,11 +36,10 @@ public final class HtmlToPdfUtils {
      */
     private static LaunchOptions buildChromiumLaunchOptions() {
         List<String> args = Arrays.asList(CHROMIUM_OPTIONS.split(DELIMITER_SPACE));
-        LaunchOptions options = new LaunchOptionsBuilder()
+        return (new LaunchOptionsBuilder())
                 .withIgnoreDefaultArgs(true)
                 .withArgs(args).withHeadless(true)
                 .build();
-        return options;
     }
 
     /**
@@ -107,9 +106,9 @@ public final class HtmlToPdfUtils {
          * HTML to PDF.
          */
         public void htmlToPdf() {
-            if (this.getChromium()) {
+            if (Boolean.TRUE.equals(this.getChromium())) {
                 try {
-                    Page page = CHROMIUM.newPage();
+                    Page page = browser.newPage();
                     page.goTo(FILE_URI_PREFIX + this.getWorkdir().resolve(INDEX_HTML).toAbsolutePath());
                     page.pdf(buildPDFOptions());
                     page.close();
