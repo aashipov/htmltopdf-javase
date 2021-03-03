@@ -30,9 +30,27 @@ public final class HtmlToPdfUtils {
             " --disable-default-apps --hide-scrollbars --metrics-recording-only --mute-audio --no-first-run --unlimited-storage" +
             " --safebrowsing-disable-auto-update --font-render-hinting=none";
     private static final String WKHTMLTOPDF_EXECUTABLE = "wkhtmltopdf";
+    private static final String CHROMIUM_EXECUTABLE_NAME = isWindows() ? "chrome" : "chromium";
+    private static final String LOCATE_IN_PATH_CMD = isWindows() ? "where" : "which";
     private static Browser browser = launchChromium();
     public static final String INDEX_HTML = "index.html";
     public static final String RESULT_PDF = "result.pdf";
+
+    /**
+     * Bypass jvppeteer bug on MS Windows.
+     * @return {@link Path} to Chromium (Chrome)
+     */
+    private static Path findChromiumExecutable() {
+        OsCommandWrapper w = new OsCommandWrapper(LOCATE_IN_PATH_CMD + DELIMITER_SPACE + CHROMIUM_EXECUTABLE_NAME);
+        execute(w);
+        if (!w.isOK()) {
+            throw new IllegalStateException(
+                    "Cannot find Chromium executable"
+                            + DELIMITER_NEW_LINE + w.getOutputString()
+                            + DELIMITER_NEW_LINE + w.getErrorString());
+        }
+        return Paths.get(w.getOutput().get(0));
+    }
 
     /**
      * Build headless Chromium {@link LaunchOptions}.
@@ -43,6 +61,7 @@ public final class HtmlToPdfUtils {
         return (new LaunchOptionsBuilder())
                 .withIgnoreDefaultArgs(true)
                 .withArgs(args)
+                .withExecutablePath(findChromiumExecutable().toString())
                 .build();
     }
 
