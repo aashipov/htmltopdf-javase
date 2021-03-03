@@ -42,7 +42,7 @@ public final class HtmlToPdfUtils {
         List<String> args = Arrays.asList(CHROMIUM_OPTIONS.split(DELIMITER_SPACE));
         return (new LaunchOptionsBuilder())
                 .withIgnoreDefaultArgs(true)
-                .withArgs(args).withHeadless(true)
+                .withArgs(args)
                 .build();
     }
 
