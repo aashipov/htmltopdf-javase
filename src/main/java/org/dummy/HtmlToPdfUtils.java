@@ -33,11 +33,7 @@ public final class HtmlToPdfUtils {
             " --disable-default-apps --hide-scrollbars --metrics-recording-only --mute-audio --no-first-run --unlimited-storage" +
             " --safebrowsing-disable-auto-update --font-render-hinting=none";
     private static final String WKHTMLTOPDF_EXECUTABLE = "wkhtmltopdf";
-    private static final List<String> CHROMIUM_EXECUTABLE_NAMES =
-            isWindows()
-                    ? Stream.of("chrome.exe", "chromium.exe").collect(toUnmodifiableList())
-                    : Stream.of("headless_shell", "chromium", "chromium-browser", "google-chrome-stable", "google-chrome").collect(toUnmodifiableList());
-    private static final String LOCATE_IN_PATH_CMD = isWindows() ? "where" : "which";
+    private static final String CHROMIUM_EXECUTABLE = System.getProperty("chromium.executable", "/usr/bin/chromium");
     private static final Browser browser = launchChromium();
     private static final PageNavigateOptions pageReady = buildPageNavigateOptions();
     public static final String INDEX_HTML = "index.html";
@@ -54,24 +50,6 @@ public final class HtmlToPdfUtils {
     }
 
     /**
-     * Bypass jvppeteer bug on MS Windows.
-     * @return {@link Path} to Chromium (Chrome)
-     */
-    private static Path findChromiumExecutable() {
-        OsCommandWrapper w;
-        for (String chromiumExecutableName : CHROMIUM_EXECUTABLE_NAMES) {
-            w = new OsCommandWrapper(LOCATE_IN_PATH_CMD + DELIMITER_SPACE + chromiumExecutableName);
-            execute(w);
-            if (w.isOK()) {
-                return Paths.get(w.getOutput().get(0));
-            } else {
-                LOG.log(Level.INFO, "{0} {1}", new Object[]{w.getOutputString(), w.getErrorString()});
-            }
-        }
-        throw new IllegalStateException("Cannot find Chromium executable");
-    }
-
-    /**
      * Build headless Chromium {@link LaunchOptions}.
      * @return {@link LaunchOptions}
      */
@@ -80,7 +58,7 @@ public final class HtmlToPdfUtils {
         return (new LaunchOptionsBuilder())
                 .withIgnoreDefaultArgs(true)
                 .withArgs(args)
-                .withExecutablePath(findChromiumExecutable().toString())
+                .withExecutablePath(CHROMIUM_EXECUTABLE)
                 .build();
     }
 
@@ -92,7 +70,7 @@ public final class HtmlToPdfUtils {
         try {
             return Puppeteer.launch(buildChromiumLaunchOptions());
         } catch (IOException e) {
-            throw new IllegalStateException(e);
+            throw new IllegalStateException("Can not launch Chromium", e);
         }
     }
 
