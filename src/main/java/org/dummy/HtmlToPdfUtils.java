@@ -27,11 +27,7 @@ public final class HtmlToPdfUtils {
 
     private static final Logger LOG = Logger.getLogger(HtmlToPdfUtils.class.getSimpleName());
     private static final int MAX_EXECUTE_TIME = 600_000;
-    private static final String CHROMIUM_OPTIONS = "--remote-debugging-port=9222 --headless --no-sandbox --no-zygote --disable-setuid-sandbox"
-            + " --disable-notifications --disable-geolocation --disable-infobars --disable-session-crashed-bubble --disable-dev-shm-usage"
-            + " --disable-gpu --disable-translate --disable-extensions --disable-background-networking  --disable-sync" +
-            " --disable-default-apps --hide-scrollbars --metrics-recording-only --mute-audio --no-first-run --unlimited-storage" +
-            " --safebrowsing-disable-auto-update --font-render-hinting=none";
+    private static final String CHROMIUM_OPTIONS = "--headless --remote-debugging-address=0.0.0.0 --remote-debugging-port=9222 --no-sandbox --no-zygote --disable-setuid-sandbox --disable-notifications --disable-geolocation --disable-infobars --disable-session-crashed-bubble --disable-dev-shm-usage --disable-gpu --disable-translate --disable-extensions --disable-features=site-per-process --disable-hang-monitor --disable-popup-blocking --disable-prompt-on-repost --disable-background-networking --disable-breakpad --disable-client-side-phishing-detection --disable-sync --disable-default-apps --hide-scrollbars --metrics-recording-only --mute-audio --no-first-run --enable-automation --password-store=basic --use-mock-keychain --unlimited-storage --safebrowsing-disable-auto-update --font-render-hinting=none --disable-sync-preferences --user-data-dir=" + Paths.get(".").resolve(".config").resolve("headless_shell");
     private static final String WKHTMLTOPDF_EXECUTABLE = "wkhtmltopdf";
     private static final String CHROMIUM_EXECUTABLE = System.getProperty("chromium.executable", "/usr/bin/chromium");
     private static final Browser browser = launchChromium();
