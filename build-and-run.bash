@@ -3,7 +3,7 @@
 set -x
 
 #To ease copy-paste
-CONTAINER_NAME=htmltopdf-javase-dev
+CONTAINER_NAME=htmltopdf-javase
 JDWP_PORT=8000
 JMX_REMOTE_PORT=9998
 PORTS_TO_PUBLISH="-p ${JMX_REMOTE_PORT}:${JMX_REMOTE_PORT} -p ${JDWP_PORT}:${JDWP_PORT} -p 8080:8080"
