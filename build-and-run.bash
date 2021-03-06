@@ -3,7 +3,7 @@
 set -x
 
 #To ease copy-paste
-IMAGE="aashipov/htmltopdf"
+IMAGE="aashipov/htmltopdf-javase"
 TOP_COMMIT=$(git log --pretty=format:'%h' -n 1)
 CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 CONTAINER_NAME=htmltopdf-javase
