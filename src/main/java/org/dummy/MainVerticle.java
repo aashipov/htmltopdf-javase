@@ -2,7 +2,10 @@ package org.dummy;
 
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Promise;
+import io.vertx.core.Vertx;
+import io.vertx.core.VertxOptions;
 import io.vertx.core.http.HttpServer;
+import io.vertx.core.http.HttpServerOptions;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.BodyHandler;
 
@@ -17,11 +20,23 @@ public class MainVerticle extends AbstractVerticle {
 
     @Override
     public void start(Promise<Void> startPromise) {
-        HttpServer server = vertx.createHttpServer();
-        Router router = Router.router(vertx);
-        router.route().handler(BodyHandler.create().setMergeFormAttributes(true));
+        VertxOptions vertxOptions = new VertxOptions()
+                .setMaxEventLoopExecuteTime(Long.MAX_VALUE)
+                .setPreferNativeTransport(true);
+        super.vertx = Vertx.vertx(vertxOptions);
+
+        Router router = Router.router(super.vertx);
+        router.route().handler(BodyHandler.create().setHandleFileUploads(true));
         router.route().handler(new CommonHandler());
+
+        final HttpServerOptions httpServerOptions = new HttpServerOptions()
+                .setTcpFastOpen(true)
+                .setTcpNoDelay(true)
+                .setTcpQuickAck(true)
+                .setPort(PORT);
+        HttpServer server = super.vertx.createHttpServer(httpServerOptions);
+
         server.requestHandler(router);
-        server.listen(PORT);
+        server.listen();
     }
 }
