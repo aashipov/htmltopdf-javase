@@ -16,5 +16,5 @@ docker build --file=Dockerfile --tag=${IMAGE}:${TOP_COMMIT} --tag=${IMAGE}:${CUR
 source ./down.bash
 docker run -d --name=${CONTAINER_NAME} --hostname=${CONTAINER_NAME} -eLC_ALL=en_US.UTF-8 -e"${JAVA_TOOL_OPTIONS}" ${PORTS_TO_PUBLISH} ${IMAGE}:${TOP_COMMIT}
 # Push VCS commit sha as docker hub tag to bypass nexus bug
-#docker push ${IMAGE}:${TOP_COMMIT}
-#docker push ${IMAGE}:${CURRENT_BRANCH}
+docker push ${IMAGE}:${TOP_COMMIT}
+docker push ${IMAGE}:${CURRENT_BRANCH}
