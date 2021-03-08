@@ -35,7 +35,6 @@ public class MainVerticle extends AbstractVerticle {
                 .setTcpQuickAck(true)
                 .setPort(PORT);
         HttpServer server = super.vertx.createHttpServer(httpServerOptions);
-
         server.requestHandler(router);
         server.listen();
     }
