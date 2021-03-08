@@ -37,6 +37,7 @@ public final class HtmlToPdfUtils {
 
     /**
      * Build {@link PageNavigateOptions} for rendering to finish.
+     *
      * @return {@link PageNavigateOptions}
      */
     private static PageNavigateOptions buildPageNavigateOptions() {
@@ -47,6 +48,7 @@ public final class HtmlToPdfUtils {
 
     /**
      * Build headless Chromium {@link LaunchOptions}.
+     *
      * @return {@link LaunchOptions}
      */
     private static LaunchOptions buildChromiumLaunchOptions() {
@@ -60,6 +62,7 @@ public final class HtmlToPdfUtils {
 
     /**
      * Start Chromium headless.
+     *
      * @return {@link Browser}
      */
     private static Browser launchChromium() {
@@ -105,7 +108,7 @@ public final class HtmlToPdfUtils {
         private boolean landscape = false;
         private String left = DEFAULT_MARGIN;
         private String right = DEFAULT_MARGIN;
-        private String top  = DEFAULT_MARGIN;
+        private String top = DEFAULT_MARGIN;
         private String bottom = DEFAULT_MARGIN;
         private final Path workdir = TMP_DIR.resolve(getRandomUUID());
         private Boolean chromium = Boolean.FALSE;
@@ -224,7 +227,8 @@ public final class HtmlToPdfUtils {
 
         /**
          * Does string matches regex
-         * @param regex regex
+         *
+         * @param regex  regex
          * @param string string
          * @return matches?
          */
@@ -235,7 +239,8 @@ public final class HtmlToPdfUtils {
 
         /**
          * Extract groups matching regex.
-         * @param regex regex
+         *
+         * @param regex  regex
          * @param string string
          * @return {@link List} {@link String} of groups matched
          */
@@ -251,6 +256,7 @@ public final class HtmlToPdfUtils {
 
         /**
          * Extract paper size and margins from URL.
+         *
          * @param url request URL
          */
         @SuppressWarnings("java:S3776")
@@ -372,15 +378,15 @@ public final class HtmlToPdfUtils {
      */
     private enum PaperSize {
         A4("210", "297"),
-        A3("297", "420")
-        ;
+        A3("297", "420");
 
         private final String width;
         private final String height;
 
         /**
          * Constructor.
-         * @param width width
+         *
+         * @param width  width
          * @param height height
          */
         PaperSize(String width, String height) {

@@ -15,6 +15,7 @@ public final class EmptinessUtils {
 
     /**
      * If object is null or empty?.
+     *
      * @param value some value
      * @return empty or null?
      */
@@ -26,9 +27,9 @@ public final class EmptinessUtils {
         } else if (value instanceof Collection) {
             return ((Collection<?>) value).isEmpty();
         } else if (value instanceof Map) {
-            return ((Map<?,?>) value).isEmpty();
+            return ((Map<?, ?>) value).isEmpty();
         } else if (value instanceof Dictionary) {
-            return ((Dictionary<?,?>) value).isEmpty();
+            return ((Dictionary<?, ?>) value).isEmpty();
         } else {
             return false;
         }
@@ -36,6 +37,7 @@ public final class EmptinessUtils {
 
     /**
      * If object is NOT null or empty?.
+     *
      * @param value some value
      * @return NOT empty or null?
      */

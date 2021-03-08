@@ -2,6 +2,7 @@ package org.dummy;
 
 import java.io.*;
 import java.math.BigDecimal;
+import java.nio.channels.FileChannel;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -67,6 +68,7 @@ public final class OsUtils {
 
     /**
      * Join collection of string.
+     *
      * @param c collection of string
      * @param d delimiter
      * @return join
@@ -87,9 +89,10 @@ public final class OsUtils {
 
     /**
      * InputStream to List of String.
-     * @param source InputStream
+     *
+     * @param source  InputStream
      * @param charset charset
-     * @param inout List of String
+     * @param inout   List of String
      */
     private static void inputStreamToListOfStrings(InputStream source, Charset charset, List<String> inout) {
         String line;
@@ -118,6 +121,7 @@ public final class OsUtils {
 
         /**
          * Constructor.
+         *
          * @param cmd command text
          */
         public OsCommandWrapper(String cmd) {
@@ -178,6 +182,7 @@ public final class OsUtils {
 
         /**
          * If a wrapper has PID?.
+         *
          * @return has it?
          */
         public boolean hasPid() {
@@ -186,6 +191,7 @@ public final class OsUtils {
 
         /**
          * Is command running longer than maxExecuteTime?.
+         *
          * @return is it?
          */
         public boolean isOverdue() {
@@ -195,6 +201,7 @@ public final class OsUtils {
 
         /**
          * Is exitCode == 0?.
+         *
          * @return is?
          */
         public boolean isOK() {
@@ -249,6 +256,7 @@ public final class OsUtils {
 
         /**
          * Constructor by wrapper.
+         *
          * @param wrapper wrapper
          */
         public OsCommandCallable(OsCommandWrapper wrapper) {
@@ -266,6 +274,7 @@ public final class OsUtils {
 
     /**
      * Is Operating System Microsoft Windows (R).
+     *
      * @return is MS Windows?
      */
     public static boolean isWindows() {
@@ -274,6 +283,7 @@ public final class OsUtils {
 
     /**
      * Is Operating System a Linux Distro.
+     *
      * @return is Linux?
      */
     public static boolean isLinux() {
@@ -282,6 +292,7 @@ public final class OsUtils {
 
     /**
      * Get Operating System version.
+     *
      * @return operating system version.
      */
     private static String getOSVersion() {
@@ -290,6 +301,7 @@ public final class OsUtils {
 
     /**
      * Is MS Windows a WMIC one (version equal 6.0 or newer).
+     *
      * @return Is MS Windows version equal 6.0 or newer?
      */
     private static boolean isWmicWindows() {
@@ -298,6 +310,7 @@ public final class OsUtils {
 
     /**
      * Assume OS console codepage name.
+     *
      * @return codepage name
      */
     private static Charset getConsoleCodepage() {
@@ -310,6 +323,7 @@ public final class OsUtils {
 
     /**
      * Get random UUID as string.
+     *
      * @return random UUID
      */
     public static String getRandomUUID() {
@@ -318,6 +332,7 @@ public final class OsUtils {
 
     /**
      * Get {@link Path} to OS directory for temporary files (e.g., /tmp in most of *nix).
+     *
      * @return {@link Path}
      */
     public static Path getTempDirectory() {
@@ -326,6 +341,7 @@ public final class OsUtils {
 
     /**
      * Get {@link Path} to a temporary file/directory in OS directory for temporary files.
+     *
      * @return {@link Path}
      * Won't create file/directory
      */
@@ -335,6 +351,7 @@ public final class OsUtils {
 
     /**
      * Get {@link Path} to a temporary file/directory in OS directory for temporary files.
+     *
      * @param extension file extension. e.g. "zip"
      * @return {@link Path}
      * Won't create file/directory
@@ -348,6 +365,7 @@ public final class OsUtils {
 
     /**
      * Crack a command line.
+     *
      * @param toProcess the command line to process
      * @return the command line broken into strings. An empty or null toProcess
      * parameter results in a zero sized array
@@ -434,6 +452,7 @@ public final class OsUtils {
 
     /**
      * Execute wrapped OS command in the same thread.
+     *
      * @param wrapper wrapper
      */
     public static void execute(OsCommandWrapper wrapper) {
@@ -476,6 +495,7 @@ public final class OsUtils {
 
     /**
      * Execute OS command synchronously.
+     *
      * @param cmd command
      * @return {@link OsCommandWrapper}
      */
@@ -487,6 +507,7 @@ public final class OsUtils {
 
     /**
      * Execute OS command in another thread.
+     *
      * @param wrapper {@link OsCommandWrapper}
      */
     @SuppressWarnings("java:S135")
@@ -525,6 +546,7 @@ public final class OsUtils {
 
     /**
      * Execute OS command asynchronously.
+     *
      * @param cmd command
      * @return {@link OsCommandWrapper}
      */
@@ -536,6 +558,7 @@ public final class OsUtils {
 
     /**
      * Execute OS command in another thread.
+     *
      * @param cmd            command
      * @param maxExecuteTime timeout
      * @return {@link OsCommandWrapper}
@@ -551,6 +574,7 @@ public final class OsUtils {
 
     /**
      * Get PID list for a given parent PID.
+     *
      * @param parentPid PPID
      * @return PID list
      */
@@ -587,6 +611,7 @@ public final class OsUtils {
 
     /**
      * Kill process tree.
+     *
      * @param rootPid PID of the root process
      */
     private static void killProcessTree(String rootPid) {
@@ -608,6 +633,7 @@ public final class OsUtils {
 
     /**
      * Create directory.
+     *
      * @param dir {@link Path}
      * @return {@link Path}
      */
@@ -616,7 +642,7 @@ public final class OsUtils {
             try {
                 Files.createDirectories(dir);
             } catch (IOException e) {
-                throw new IllegalStateException(String.format("Cannot create directory %s",dir));
+                throw new IllegalStateException(String.format("Cannot create directory %s", dir));
             }
         }
         return dir;
@@ -624,6 +650,7 @@ public final class OsUtils {
 
     /**
      * Create file.
+     *
      * @param file {@link Path}
      * @return {@link Path}
      */
@@ -643,6 +670,7 @@ public final class OsUtils {
 
     /**
      * Recursively delete files and directories.
+     *
      * @param path {@link Path}
      */
     @SuppressWarnings({"java:S4042", "java:S899"})
@@ -659,6 +687,7 @@ public final class OsUtils {
 
     /**
      * Copy {@link InputStream} to {@link OutputStream}.
+     *
      * @param input  {@link InputStream}
      * @param output {@link OutputStream}
      * @throws IOException read or write
@@ -668,6 +697,23 @@ public final class OsUtils {
         final byte[] buffer = new byte[BUFFER_SIZE];
         while ((bytesRead = input.read(buffer)) != -1) {
             output.write(buffer, 0, bytesRead);
+        }
+    }
+
+    /**
+     * Copy file via {@link FileChannel}.
+     * @param source file
+     * @param target file
+     * @return number of bytes transferred
+     * @throws IOException copy
+     * Best performance among peers FileInput(Output)Stream or {@link Files#copy(Path, OutputStream)}
+     * @see <a href="https://stackoverflow.com/a/50602790">Stackoverflow</a>
+     */
+    public static long copyFileViaChannel(Path source, Path target) throws IOException {
+        createFile(target);
+        try (FileChannel inChannel = (new FileInputStream(source.toFile())).getChannel();
+             FileChannel outChannel = (new FileOutputStream(target.toFile())).getChannel()) {
+            return inChannel.transferTo(0, source.toFile().length(), outChannel);
         }
     }
 }
