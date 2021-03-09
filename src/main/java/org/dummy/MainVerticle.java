@@ -8,6 +8,7 @@ import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerOptions;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.BodyHandler;
+import org.dummy.upload.MBodyHandler;
 
 /**
  * {@link AbstractVerticle} implementation.
@@ -26,7 +27,7 @@ public class MainVerticle extends AbstractVerticle {
         super.vertx = Vertx.vertx(vertxOptions);
 
         Router router = Router.router(super.vertx);
-        router.route().handler(BodyHandler.create().setHandleFileUploads(true));
+        router.route().handler(MBodyHandler.create().setHandleFileUploads(true));
         router.route().handler(new CommonHandler());
 
         final HttpServerOptions httpServerOptions = new HttpServerOptions()

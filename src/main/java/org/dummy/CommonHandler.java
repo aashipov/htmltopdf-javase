@@ -3,8 +3,10 @@ package org.dummy;
 import io.vertx.core.Handler;
 import io.vertx.ext.web.FileUpload;
 import io.vertx.ext.web.RoutingContext;
+import org.dummy.upload.MFileUploadImpl;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -45,9 +47,12 @@ public class CommonHandler implements Handler<RoutingContext> {
         for (FileUpload fileUpload : event.fileUploads()) {
             if (isNotEmpty(fileUpload.fileName())) {
                 try {
-                    Path source = Paths.get(fileUpload.uploadedFileName());
-                    copyFileViaChannel(source, po.getWorkdir().resolve(fileUpload.fileName()));
-                    deleteFilesAndDirectories(source);
+                    MFileUploadImpl mfui = (MFileUploadImpl) fileUpload;
+                    if (mfui.getData().length > 0) {
+                        Path currentFile = po.getWorkdir().resolve(mfui.fileName());
+                        createFile(currentFile);
+                        Files.write(currentFile, mfui.getData());
+                    }
                 } catch (IOException e) {
                     internalServerError(event, e.getMessage());
                 }
