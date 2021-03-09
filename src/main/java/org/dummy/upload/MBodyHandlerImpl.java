@@ -67,7 +67,7 @@ public class MBodyHandlerImpl implements MBodyHandler {
                             this.mergeFormAttributes
                     );
             request.handler(handler);
-            request.endHandler(new EndHandler(handler));
+            request.endHandler(v -> handler.end());
             context.put(BODY_HANDLED, true);
         } else {
             // on reroute we need to re-merge the form params if that was desired
@@ -206,7 +206,7 @@ public class MBodyHandlerImpl implements MBodyHandler {
                         });
 
                         upload.exceptionHandler(t -> {
-                            deleteFileUploads();
+                            //deleteFileUploads();
                             context.fail(t);
                         });
                         upload.endHandler(v -> {
@@ -225,7 +225,7 @@ public class MBodyHandlerImpl implements MBodyHandler {
 
 
             context.request().exceptionHandler(t -> {
-                deleteFileUploads();
+                //deleteFileUploads();
                 context.fail(t);
             });
         }
@@ -256,7 +256,7 @@ public class MBodyHandlerImpl implements MBodyHandler {
                 failed = true;
                 context.fail(413);
                 // enqueue a delete for the error uploads
-                context.vertx().runOnContext(v -> deleteFileUploads());
+                //context.vertx().runOnContext(v -> deleteFileUploads());
             } else {
                 // multipart requests will not end up in the request body
                 // url encoded should also not, however jQuery by default
@@ -281,12 +281,12 @@ public class MBodyHandlerImpl implements MBodyHandler {
         void doEnd() {
 
             if (failed) {
-                deleteFileUploads();
+                //deleteFileUploads();
                 return;
             }
 
             if (deleteUploadedFilesOnEnd) {
-                context.addBodyEndHandler(x -> deleteFileUploads());
+                //context.addBodyEndHandler(x -> deleteFileUploads());
             }
 
             HttpServerRequest req = context.request();
@@ -297,6 +297,9 @@ public class MBodyHandlerImpl implements MBodyHandler {
             context.next();
         }
 
+        /**
+         * No need in, since handler does not save temp files.
+         */
         private void deleteFileUploads() {
             if (cleanup.compareAndSet(false, true) && handleFileUploads) {
                 for (FileUpload fileUpload : context.fileUploads()) {
