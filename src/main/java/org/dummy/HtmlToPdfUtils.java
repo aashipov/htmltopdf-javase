@@ -138,7 +138,7 @@ public final class HtmlToPdfUtils {
                 }
             } else {
                 this.buildOsCommandWrapper();
-                execute(this.getWrapper());
+                executeAsync(this.getWrapper());
                 if (!this.getWrapper().isOK()) {
                     LOG.info(this.getWrapper().getOutputString() + DELIMITER_NEW_LINE + this.getWrapper().getErrorString());
                 }

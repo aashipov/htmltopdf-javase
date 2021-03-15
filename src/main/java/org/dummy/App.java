@@ -20,7 +20,7 @@ public class App {
         HttpServer server = HttpServer.create(new InetSocketAddress(PORT), 0);
         server.createContext("/", new CommonHandler());
         ExecutorService executorService =
-                Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+                Executors.newFixedThreadPool(Math.max(Runtime.getRuntime().availableProcessors(), 2) * 8);
         server.setExecutor(executorService);
         server.start();
     }
