@@ -1,6 +1,8 @@
 package org.dummy;
 
-import io.undertow.Undertow;
+import com.sun.net.httpserver.HttpServer;
+import java.io.IOException;
+import java.net.InetSocketAddress;
 import static org.dummy.HtmlToPdfUtils.PrinterOptions.TMP_DIR;
 import static org.dummy.OsUtils.deleteFilesAndDirectories;
 
@@ -8,14 +10,13 @@ import static org.dummy.OsUtils.deleteFilesAndDirectories;
  * Main class.
  */
 public class App {
-
-    private static final String HOST = "0.0.0.0";
     private static final int PORT = 8080;
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         deleteFilesAndDirectories(TMP_DIR);
-        Undertow server = Undertow.builder().addHttpListener(PORT, HOST).setHandler(new Router()).build();
+        HttpServer server = HttpServer.create(new InetSocketAddress(PORT), 0);
+        server.createContext("/", new CommonHandler());
+        server.setExecutor(null); // creates a default executor
         server.start();
     }
-
 }

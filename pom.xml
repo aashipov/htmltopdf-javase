@@ -17,15 +17,9 @@
         <maven.compiler.target>11</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <undertow.version>2.2.4.Final</undertow.version>
     </properties>
 
     <dependencies>
-        <dependency>
-            <groupId>io.undertow</groupId>
-            <artifactId>undertow-core</artifactId>
-            <version>${undertow.version}</version>
-        </dependency>
         <dependency>
             <groupId>io.github.fanyong920</groupId>
             <artifactId>jvppeteer</artifactId>
