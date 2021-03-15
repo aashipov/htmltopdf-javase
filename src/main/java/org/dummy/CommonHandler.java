@@ -118,15 +118,15 @@ public class CommonHandler implements HttpHandler {
             po.htmlToPdf();
             Path resultPdf = po.getWorkdir().resolve(RESULT_PDF);
             if (resultPdf.toFile().exists() && resultPdf.toFile().isFile()) {
-                try (OutputStream outputStream = httpExchange.getResponseBody()) {
-                    byte[] content = Files.readAllBytes(resultPdf);
-                    outputStream.write(content);
-                    outputStream.flush();
-                    httpExchange.getRequestBody().close();
+                try (InputStream inputStream = Files.newInputStream(resultPdf); OutputStream outputStream = httpExchange.getResponseBody()){
                     httpExchange.setAttribute(CONTENT_TYPE, APPLICATION_PDF);
                     httpExchange.getResponseHeaders().add(CONTENT_DISPOSITION, PDF_ATTACHED);
-                    httpExchange.sendResponseHeaders(OK, content.length);
+                    httpExchange.sendResponseHeaders(OK, resultPdf.toFile().length());
+                    inputStream.transferTo(outputStream);
+                    outputStream.flush();
+                    httpExchange.getRequestBody().close();
                 } catch (IOException e) {
+                    log.log(Level.SEVERE, "Error sending " + RESULT_PDF, e);
                     textResponse(httpExchange, INTERNAL_SERVER_ERROR, "Error sending " + RESULT_PDF);
                 }
             } else {
@@ -139,15 +139,13 @@ public class CommonHandler implements HttpHandler {
     }
 
     private static byte[] getInputAsBinary(InputStream requestStream) {
-        ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        try {
+        try (ByteArrayOutputStream bos = new ByteArrayOutputStream()){
             requestStream.transferTo(bos);
             requestStream.close();
-            bos.close();
+            return bos.toByteArray();
         } catch (IOException e) {
-            log.log(Level.SEVERE, "error while decoding http input stream", e);
+            throw new IllegalStateException(e);
         }
-        return bos.toByteArray();
     }
 
     private static List<Integer> indexesOf(byte[] array, byte[] pattern) {
