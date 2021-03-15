@@ -119,11 +119,12 @@ public class CommonHandler implements HttpHandler {
             po.htmlToPdf();
             Path resultPdf = po.getWorkdir().resolve(RESULT_PDF);
             if (resultPdf.toFile().exists() && resultPdf.toFile().isFile()) {
-                try (InputStream inputStream = Files.newInputStream(resultPdf); OutputStream outputStream = httpExchange.getResponseBody()){
+                try (OutputStream outputStream = httpExchange.getResponseBody()){
+                    byte[] pdfFileContent = Files.readAllBytes(resultPdf);
                     httpExchange.getResponseHeaders().add(CONTENT_TYPE, APPLICATION_PDF);
                     httpExchange.getResponseHeaders().add(CONTENT_DISPOSITION, PDF_ATTACHED);
-                    httpExchange.sendResponseHeaders(OK, resultPdf.toFile().length());
-                    inputStream.transferTo(outputStream);
+                    httpExchange.sendResponseHeaders(OK, pdfFileContent.length);
+                    outputStream.write(pdfFileContent);
                     outputStream.flush();
                     httpExchange.getRequestBody().close();
                 } catch (IOException e) {
