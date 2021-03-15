@@ -3,6 +3,9 @@ package org.dummy;
 import com.sun.net.httpserver.HttpServer;
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 import static org.dummy.HtmlToPdfUtils.PrinterOptions.TMP_DIR;
 import static org.dummy.OsUtils.deleteFilesAndDirectories;
 
@@ -16,7 +19,8 @@ public class App {
         deleteFilesAndDirectories(TMP_DIR);
         HttpServer server = HttpServer.create(new InetSocketAddress(PORT), 0);
         server.createContext("/", new CommonHandler());
-        server.setExecutor(null); // creates a default executor
+        ExecutorService executorService = Executors.newWorkStealingPool();
+        server.setExecutor(executorService);
         server.start();
     }
 }
