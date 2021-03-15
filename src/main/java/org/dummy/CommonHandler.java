@@ -3,6 +3,7 @@ package org.dummy;
 import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
+import org.riversun.finbin.BinarySearcher;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -57,7 +58,7 @@ public class CommonHandler implements HttpHandler {
                 byte[] boundaryBytes = (boundary).getBytes(DEFAULT_CHARSET);
                 byte[] payload = requestBody(httpExchange);
                 ArrayList<MultiPart> list = new ArrayList<>();
-                List<Integer> offsets = indexesOf(payload, boundaryBytes);
+                List<Integer> offsets = indexesOfByBs(payload, boundaryBytes);
                 for (int idx = 0; idx < offsets.size(); idx++) {
                     int startPart = offsets.get(idx);
                     int endPart = payload.length;
@@ -162,6 +163,10 @@ public class CommonHandler implements HttpHandler {
             }
         }
         return result;
+    }
+
+    private static List<Integer> indexesOfByBs(byte[] array, byte[] pattern) {
+        return (new BinarySearcher()).searchBytes(array, pattern);
     }
 
     private static class MultiPart {
