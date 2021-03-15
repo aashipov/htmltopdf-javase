@@ -3,10 +3,8 @@ package org.dummy;
 import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -41,14 +39,19 @@ public class CommonHandler implements HttpHandler {
 
     private static final String FILENAME_HEADER_LOOKUP = DELIMITER_CARRIAGE_RETURN_AND_NEW_LINE + CONTENT_DISPOSITION + ": form-data; name=" + FILES + FILENAME_LOOKUP;
     private static final String RFC_7578_PREPEND = "\r\n--";
+    private static final int OK = 200;
+    private static final int INTERNAL_SERVER_ERROR = 500;
+    private static final String CHROMIUM = "chromium";
+    private static final String HTML = "html";
+    private static final String MULTIPART = "multipart/form-data";
 
     @Override
     public void handle(HttpExchange httpExchange) throws IOException {
         String url = httpExchange.getRequestURI().toString();
-        if (url.contains("chromium") || url.contains("html")) {
+        if (url.contains(CHROMIUM) || url.contains(HTML)) {
             Headers headers = httpExchange.getRequestHeaders();
             String contentType = headers.getFirst(CONTENT_TYPE);
-            if (contentType.startsWith("multipart/form-data")) {
+            if (contentType.startsWith(MULTIPART)) {
                 //found form data
                 String boundary = contentType.substring(contentType.indexOf(BOUNDARY) + BOUNDARY.length());
                 byte[] boundaryBytes = (boundary).getBytes(DEFAULT_CHARSET);
@@ -92,11 +95,11 @@ public class CommonHandler implements HttpHandler {
                 handle(httpExchange, null);
             }
         } else {
-            textResponse(httpExchange, 200, STATUS_UP);
+            textResponse(httpExchange, OK, STATUS_UP);
         }
     }
 
-    public void handle(HttpExchange httpExchange, List<MultiPart> parts) throws IOException {
+    private void handle(HttpExchange httpExchange, List<MultiPart> parts) {
         HtmlToPdfUtils.PrinterOptions po = new HtmlToPdfUtils.PrinterOptions();
         String url = httpExchange.getRequestURI().toString();
         po.printoutSettings(url);
@@ -104,28 +107,35 @@ public class CommonHandler implements HttpHandler {
         Path file;
         for (MultiPart part : parts) {
             file = po.getWorkdir().resolve(part.filename);
-            Files.write(file, part.bytes);
+            try {
+                Files.write(file, part.bytes);
+            } catch (IOException e) {
+                textResponse(httpExchange, INTERNAL_SERVER_ERROR, "Error saving multipart");
+            }
         }
         Path indexHtml = po.getWorkdir().resolve(INDEX_HTML);
         if (indexHtml.toFile().exists() && indexHtml.toFile().canRead()) {
             po.htmlToPdf();
             Path resultPdf = po.getWorkdir().resolve(RESULT_PDF);
             if (resultPdf.toFile().exists() && resultPdf.toFile().isFile()) {
-                byte[] content = Files.readAllBytes(resultPdf);
-                httpExchange.setAttribute(CONTENT_TYPE, APPLICATION_PDF);
-                httpExchange.getResponseHeaders().add(CONTENT_DISPOSITION, PDF_ATTACHED);
-                OutputStream outputStream = httpExchange.getResponseBody();
-                httpExchange.sendResponseHeaders(200, content.length);
-                outputStream.write(content);
-                outputStream.flush();
-                outputStream.close();
-                httpExchange.getRequestBody().close();
-                deleteFilesAndDirectories(po.getWorkdir());
-                return;
+                try (OutputStream outputStream = httpExchange.getResponseBody()) {
+                    byte[] content = Files.readAllBytes(resultPdf);
+                    outputStream.write(content);
+                    outputStream.flush();
+                    httpExchange.getRequestBody().close();
+                    httpExchange.setAttribute(CONTENT_TYPE, APPLICATION_PDF);
+                    httpExchange.getResponseHeaders().add(CONTENT_DISPOSITION, PDF_ATTACHED);
+                    httpExchange.sendResponseHeaders(OK, content.length);
+                } catch (IOException e) {
+                    textResponse(httpExchange, INTERNAL_SERVER_ERROR, "Error sending " + RESULT_PDF);
+                }
+            } else {
+                textResponse(httpExchange, INTERNAL_SERVER_ERROR, "No " + RESULT_PDF);
             }
+        } else {
+            textResponse(httpExchange, INTERNAL_SERVER_ERROR, "No " + INDEX_HTML);
         }
         deleteFilesAndDirectories(po.getWorkdir());
-        textResponse(httpExchange, 500, "Error converting");
     }
 
     private static byte[] getInputAsBinary(InputStream requestStream) {
@@ -162,12 +172,15 @@ public class CommonHandler implements HttpHandler {
         private byte[] bytes;
     }
 
-    private static void textResponse(HttpExchange exchange, int rCode, String msg) throws IOException {
-        exchange.sendResponseHeaders(rCode, msg.length());
-        exchange.setAttribute(CONTENT_TYPE, TEXT_PLAIN);
-        OutputStream os = exchange.getResponseBody();
-        os.write(msg.getBytes(DEFAULT_CHARSET));
-        os.close();
-        exchange.close();
+    private static void textResponse(HttpExchange exchange, int rCode, String msg) {
+        try (OutputStream os = exchange.getResponseBody()){
+            exchange.sendResponseHeaders(rCode, msg.length());
+            exchange.setAttribute(CONTENT_TYPE, TEXT_PLAIN);
+            os.write(msg.getBytes(DEFAULT_CHARSET));
+        } catch (IOException e) {
+            log.log(Level.SEVERE, "Error sending plain text response", e);
+        } finally {
+            exchange.close();
+        }
     }
 }
