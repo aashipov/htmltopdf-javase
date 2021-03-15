@@ -72,7 +72,6 @@ public class CommonHandler implements HttpHandler {
                         // extract name from header
                         int nameIndex = header.indexOf(FILENAME_HEADER_LOOKUP);
                         if (nameIndex >= 0) {
-                            int startMarker = nameIndex + FILENAME_HEADER_LOOKUP.length();
                             //check for extra filename field
                             int fileNameStart = header.indexOf(FILENAME_LOOKUP);
                             if (fileNameStart >= 0) {
@@ -159,13 +158,13 @@ public class CommonHandler implements HttpHandler {
     }
 
     private static class MultiPart {
-        public String filename;
-        public byte[] bytes;
+        private String filename;
+        private byte[] bytes;
     }
 
     private static void textResponse(HttpExchange exchange, int rCode, String msg) throws IOException {
         exchange.sendResponseHeaders(rCode, msg.length());
-        exchange.setAttribute("Content-Type", TEXT_PLAIN);
+        exchange.setAttribute(CONTENT_TYPE, TEXT_PLAIN);
         OutputStream os = exchange.getResponseBody();
         os.write(msg.getBytes(DEFAULT_CHARSET));
         os.close();
