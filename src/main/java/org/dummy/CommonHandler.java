@@ -3,8 +3,6 @@ package org.dummy;
 import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
-import org.riversun.finbin.BinarySearcher;
-
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
