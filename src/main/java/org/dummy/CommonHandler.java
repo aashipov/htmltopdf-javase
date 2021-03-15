@@ -55,7 +55,7 @@ public class CommonHandler implements HttpHandler {
                 //found form data
                 String boundary = contentType.substring(contentType.indexOf(BOUNDARY) + BOUNDARY.length());
                 byte[] boundaryBytes = (boundary).getBytes(DEFAULT_CHARSET);
-                byte[] payload = getInputAsBinary(httpExchange.getRequestBody());
+                byte[] payload = requestBody(httpExchange);
                 ArrayList<MultiPart> list = new ArrayList<>();
                 List<Integer> offsets = indexesOf(payload, boundaryBytes);
                 for (int idx = 0; idx < offsets.size(); idx++) {
@@ -119,7 +119,7 @@ public class CommonHandler implements HttpHandler {
             Path resultPdf = po.getWorkdir().resolve(RESULT_PDF);
             if (resultPdf.toFile().exists() && resultPdf.toFile().isFile()) {
                 try (InputStream inputStream = Files.newInputStream(resultPdf); OutputStream outputStream = httpExchange.getResponseBody()){
-                    httpExchange.setAttribute(CONTENT_TYPE, APPLICATION_PDF);
+                    httpExchange.getResponseHeaders().add(CONTENT_TYPE, APPLICATION_PDF);
                     httpExchange.getResponseHeaders().add(CONTENT_DISPOSITION, PDF_ATTACHED);
                     httpExchange.sendResponseHeaders(OK, resultPdf.toFile().length());
                     inputStream.transferTo(outputStream);
@@ -138,10 +138,9 @@ public class CommonHandler implements HttpHandler {
         deleteFilesAndDirectories(po.getWorkdir());
     }
 
-    private static byte[] getInputAsBinary(InputStream requestStream) {
-        try (ByteArrayOutputStream bos = new ByteArrayOutputStream()){
+    private static byte[] requestBody(HttpExchange httpExchange) {
+        try (InputStream requestStream = httpExchange.getRequestBody(); ByteArrayOutputStream bos = new ByteArrayOutputStream()){
             requestStream.transferTo(bos);
-            requestStream.close();
             return bos.toByteArray();
         } catch (IOException e) {
             throw new IllegalStateException(e);
@@ -172,8 +171,8 @@ public class CommonHandler implements HttpHandler {
 
     private static void textResponse(HttpExchange exchange, int rCode, String msg) {
         try (OutputStream os = exchange.getResponseBody()){
+            exchange.getResponseHeaders().add(CONTENT_TYPE, TEXT_PLAIN);
             exchange.sendResponseHeaders(rCode, msg.length());
-            exchange.setAttribute(CONTENT_TYPE, TEXT_PLAIN);
             os.write(msg.getBytes(DEFAULT_CHARSET));
         } catch (IOException e) {
             log.log(Level.SEVERE, "Error sending plain text response", e);
