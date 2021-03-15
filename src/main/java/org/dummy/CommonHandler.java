@@ -77,7 +77,10 @@ public class CommonHandler implements HttpHandler {
                             //check for extra filename field
                             int fileNameStart = header.indexOf(FILENAME_LOOKUP);
                             if (fileNameStart >= 0) {
-                                String filename = header.substring(fileNameStart + FILENAME_LOOKUP.length(), header.indexOf(DELIMITER_CARRIAGE_RETURN_AND_NEW_LINE, fileNameStart));
+                                String filename =
+                                        header.substring(
+                                                fileNameStart + FILENAME_LOOKUP.length(), header.indexOf(DELIMITER_CARRIAGE_RETURN_AND_NEW_LINE,
+                                                        fileNameStart));
                                 p.filename = filename.replace('"', ' ').replace('\'', ' ').trim();
                             }
                         } else {
@@ -117,12 +120,13 @@ public class CommonHandler implements HttpHandler {
             po.htmlToPdf();
             Path resultPdf = po.getWorkdir().resolve(RESULT_PDF);
             if (resultPdf.toFile().exists() && resultPdf.toFile().isFile()) {
-                try (OutputStream outputStream = httpExchange.getResponseBody()){
-                    byte[] pdfFileContent = Files.readAllBytes(resultPdf);
+                try (InputStream inputStream = Files.newInputStream(resultPdf);
+                        OutputStream outputStream = httpExchange.getResponseBody()) {
+                    long contentLength = resultPdf.toFile().length();
                     httpExchange.getResponseHeaders().add(CONTENT_TYPE, APPLICATION_PDF);
                     httpExchange.getResponseHeaders().add(CONTENT_DISPOSITION, PDF_ATTACHED);
-                    httpExchange.sendResponseHeaders(OK, pdfFileContent.length);
-                    outputStream.write(pdfFileContent);
+                    httpExchange.sendResponseHeaders(OK, contentLength);
+                    inputStream.transferTo(outputStream);
                     outputStream.flush();
                     httpExchange.getRequestBody().close();
                 } catch (IOException e) {
@@ -139,7 +143,7 @@ public class CommonHandler implements HttpHandler {
     }
 
     private static byte[] requestBody(HttpExchange httpExchange) {
-        try (InputStream requestStream = httpExchange.getRequestBody(); ByteArrayOutputStream bos = new ByteArrayOutputStream()){
+        try (InputStream requestStream = httpExchange.getRequestBody(); ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
             requestStream.transferTo(bos);
             return bos.toByteArray();
         } catch (IOException e) {
@@ -170,7 +174,7 @@ public class CommonHandler implements HttpHandler {
     }
 
     private static void textResponse(HttpExchange exchange, int rCode, String msg) {
-        try (OutputStream os = exchange.getResponseBody()){
+        try (OutputStream os = exchange.getResponseBody()) {
             exchange.getResponseHeaders().add(CONTENT_TYPE, TEXT_PLAIN);
             exchange.sendResponseHeaders(rCode, msg.length());
             os.write(msg.getBytes(DEFAULT_CHARSET));
