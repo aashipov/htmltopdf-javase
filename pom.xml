@@ -21,11 +21,6 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.riversun</groupId>
-            <artifactId>finbin</artifactId>
-            <version>0.6.2</version>
-        </dependency>
-        <dependency>
             <groupId>io.github.fanyong920</groupId>
             <artifactId>jvppeteer</artifactId>
             <version>${jvppeteer.version}</version>

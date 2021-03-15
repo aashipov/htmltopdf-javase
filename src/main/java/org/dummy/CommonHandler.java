@@ -58,7 +58,7 @@ public class CommonHandler implements HttpHandler {
                 byte[] boundaryBytes = (boundary).getBytes(DEFAULT_CHARSET);
                 byte[] payload = requestBody(httpExchange);
                 ArrayList<MultiPart> list = new ArrayList<>();
-                List<Integer> offsets = indexesOfByBs(payload, boundaryBytes);
+                List<Integer> offsets = indexesOf(payload, boundaryBytes);
                 for (int idx = 0; idx < offsets.size(); idx++) {
                     int startPart = offsets.get(idx);
                     int endPart = payload.length;
@@ -166,10 +166,6 @@ public class CommonHandler implements HttpHandler {
         return result;
     }
 
-    private static List<Integer> indexesOfByBs(byte[] array, byte[] pattern) {
-        return (new BinarySearcher()).searchBytes(array, pattern);
-    }
-
     private static class MultiPart {
         private String filename;
         private byte[] bytes;
@@ -186,4 +182,6 @@ public class CommonHandler implements HttpHandler {
             exchange.close();
         }
     }
+
+
 }
