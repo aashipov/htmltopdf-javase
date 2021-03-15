@@ -120,13 +120,12 @@ public class CommonHandler implements HttpHandler {
             po.htmlToPdf();
             Path resultPdf = po.getWorkdir().resolve(RESULT_PDF);
             if (resultPdf.toFile().exists() && resultPdf.toFile().isFile()) {
-                try (InputStream inputStream = Files.newInputStream(resultPdf);
-                        OutputStream outputStream = httpExchange.getResponseBody()) {
-                    long contentLength = resultPdf.toFile().length();
+                try (OutputStream outputStream = httpExchange.getResponseBody()) {
+                    byte[] pdfContent = Files.readAllBytes(resultPdf);
                     httpExchange.getResponseHeaders().add(CONTENT_TYPE, APPLICATION_PDF);
                     httpExchange.getResponseHeaders().add(CONTENT_DISPOSITION, PDF_ATTACHED);
-                    httpExchange.sendResponseHeaders(OK, contentLength);
-                    inputStream.transferTo(outputStream);
+                    httpExchange.sendResponseHeaders(OK, pdfContent.length);
+                    outputStream.write(pdfContent);
                     outputStream.flush();
                     httpExchange.getRequestBody().close();
                 } catch (IOException e) {
@@ -143,9 +142,8 @@ public class CommonHandler implements HttpHandler {
     }
 
     private static byte[] requestBody(HttpExchange httpExchange) {
-        try (InputStream requestStream = httpExchange.getRequestBody(); ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
-            requestStream.transferTo(bos);
-            return bos.toByteArray();
+        try (InputStream requestStream = httpExchange.getRequestBody()) {
+            return requestStream.readAllBytes();
         } catch (IOException e) {
             throw new IllegalStateException(e);
         }
