@@ -59,9 +59,11 @@ public class CommonHandler implements HttpHandler {
                 List<Integer> offsets = indexesOf(payload, boundaryBytes);
                 for (int idx = 0; idx < offsets.size(); idx++) {
                     int startPart = offsets.get(idx);
-                    int endPart = payload.length;
+                    int endPart;
                     if (idx < offsets.size() - 1) {
                         endPart = offsets.get(idx + 1) - RFC_7578_PREPEND.length();
+                    } else {
+                        endPart = payload.length;
                     }
                     byte[] part = Arrays.copyOfRange(payload, startPart, endPart);
                     //look for header
@@ -69,8 +71,7 @@ public class CommonHandler implements HttpHandler {
                     int headerEnd = !headerEnds.isEmpty() ? headerEnds.get(0) : -1;
                     if (headerEnd > 0) {
                         MultiPart p = new MultiPart();
-                        byte[] head = Arrays.copyOfRange(part, 0, headerEnd);
-                        String header = new String(head);
+                        String header = new String(part, 0, headerEnd, DEFAULT_CHARSET);
                         // extract name from header
                         int nameIndex = header.indexOf(FILENAME_HEADER_LOOKUP);
                         if (nameIndex >= 0) {
