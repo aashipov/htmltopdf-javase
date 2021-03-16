@@ -87,7 +87,7 @@ public class CommonHandler implements HttpHandler {
                             // skip entry if no name is found
                             continue;
                         }
-                        p.bytes = Arrays.copyOfRange(part, headerEnd + 4, part.length);
+                        p.bytes = Arrays.copyOfRange(part, headerEnd + RFC_7578_PREPEND.length(), part.length);
                         list.add(p);
                     }
                 }
@@ -149,12 +149,12 @@ public class CommonHandler implements HttpHandler {
         }
     }
 
-    private static List<Integer> indexesOf(byte[] array, byte[] pattern) {
+    private static List<Integer> indexesOf(byte[] haystack, byte[] needle) {
         List<Integer> result = new ArrayList<>(0);
-        for (int i = 0; i < array.length - pattern.length + 1; i++) {
+        for (int i = 0; i < haystack.length - needle.length + 1; i++) {
             boolean found = true;
-            for (int j = 0; j < pattern.length; j++) {
-                if (array[i + j] != pattern[j]) {
+            for (int j = 0; j < needle.length; j++) {
+                if (haystack[i + j] != needle[j]) {
                     found = false;
                     break;
                 }
