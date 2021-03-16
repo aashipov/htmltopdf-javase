@@ -12,7 +12,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.Part;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.handler.AbstractHandler;
-import static org.dummy.EmptinessUtils.isNotEmpty;
+import static org.dummy.EmptinessUtils.isBlank;
 import static org.dummy.HtmlToPdfUtils.*;
 import static org.dummy.HtmlToPdfUtils.PrinterOptions.TMP_DIR;
 import static org.dummy.OsUtils.*;
@@ -64,7 +64,7 @@ public class CommonHandler extends AbstractHandler {
     private static void storeParts(HttpServletRequest request, HtmlToPdfUtils.PrinterOptions po) throws IOException, ServletException {
         for (Part part : request.getParts()) {
             String filename = part.getSubmittedFileName();
-            if (isNotEmpty(filename)) {
+            if (!isBlank(filename)) {
                 // ensure we don't have "/" and ".." in the raw form.
                 filename = URLEncoder.encode(filename, DEFAULT_CHARSET_NAME);
                 Path file = po.getWorkdir().resolve(filename);
