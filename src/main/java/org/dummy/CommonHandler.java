@@ -42,6 +42,8 @@ public class CommonHandler implements HttpHandler {
     private static final String CHROMIUM = "chromium";
     private static final String HTML = "html";
     private static final String MULTIPART = "multipart/form-data";
+    private static final char DOUBLE_QUOTATION_MARK = '"';
+    private static final char SINGLE_QUOTATION_MARK = '\'';
 
     @Override
     public void handle(HttpExchange httpExchange) throws IOException {
@@ -81,7 +83,7 @@ public class CommonHandler implements HttpHandler {
                                                     fileNameStart + FILENAME_LOOKUP.length(),
                                                     header.indexOf(DELIMITER_CARRIAGE_RETURN_AND_NEW_LINE, fileNameStart)
                                             );
-                                    mm.filenames.add(filename.replace('"', ' ').replace('\'', ' ').trim());
+                                    mm.filenames.add(clearFilename(filename));
                                     mm.fileStartIdxs.add(headerEnd + RFC_7578_PREPEND.length());
                                     mm.fileEndIdxs.add(endPart);
                                 }
@@ -180,6 +182,24 @@ public class CommonHandler implements HttpHandler {
         private final List<String> filenames = new ArrayList<>(0);
         private final List<Integer> fileStartIdxs = new ArrayList<>(0);
         private final List<Integer> fileEndIdxs = new ArrayList<>(0);
+    }
+
+    private static String clearFilename(String filename) {
+        int firstLiteral = 0;
+        int lastLiteral = filename.length() - 1;
+        for (int i = 0; i < filename.length(); i++) {
+            if (DOUBLE_QUOTATION_MARK != filename.charAt(i) && SINGLE_QUOTATION_MARK != filename.charAt(i)) {
+                firstLiteral = i;
+                break;
+            }
+        }
+        for (int i = filename.length() - 1; i >= 0; i--) {
+            if (DOUBLE_QUOTATION_MARK != filename.charAt(i) && SINGLE_QUOTATION_MARK != filename.charAt(i)) {
+                lastLiteral = i;
+                break;
+            }
+        }
+        return filename.substring(firstLiteral, lastLiteral + 1);
     }
 
     private static void textResponse(HttpExchange exchange, int rCode, String msg) {
