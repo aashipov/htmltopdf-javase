@@ -93,6 +93,7 @@ public class CommonHandler implements HttpHandler {
                         }
                     } catch (Exception e) {
                         log.log(Level.SEVERE, null, e);
+                        textResponse(httpExchange, INTERNAL_SERVER_ERROR, "Error receiving multipart " + e.getMessage());
                     }
                 }
                 saveOnDiskAndConvertToPdf(httpExchange, list);
