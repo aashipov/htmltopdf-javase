@@ -151,8 +151,26 @@ public class CommonHandler implements HttpHandler {
     }
 
     private static List<Integer> indexesOf(byte[] haystack, byte[] needle) {
+        return indexesOf(haystack, needle, 0, haystack.length - needle.length + 1);
+    }
+
+    private static void checkArgument(boolean condition, String errorMsg) {
+        if (condition) {
+            throw new IllegalArgumentException(errorMsg);
+        }
+    }
+
+    private static List<Integer> indexesOf(byte[] haystack, byte[] needle, int haystackStart, int haystackEnd) {
+        checkArgument(null == haystack, "haystack is null");
+        checkArgument(null == needle, "needle is null");
+        if (haystackStart < 0 || haystackStart > haystackEnd) {
+            haystackStart = 0;
+        }
+        if (haystackEnd < 0 || haystackEnd > haystack.length - needle.length + 1) {
+            haystackEnd = haystack.length - needle.length + 1;
+        }
         List<Integer> result = new ArrayList<>(0);
-        for (int i = 0; i < haystack.length - needle.length + 1; i++) {
+        for (int i = haystackStart; i < haystackEnd; i++) {
             boolean found = true;
             for (int j = 0; j < needle.length; j++) {
                 if (haystack[i + j] != needle[j]) {
