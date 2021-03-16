@@ -13,8 +13,7 @@ import java.util.*;
 import java.util.concurrent.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import static org.dummy.EmptinessUtils.isEmpty;
-import static org.dummy.EmptinessUtils.isNotEmpty;
+import static org.dummy.EmptinessUtils.isBlank;
 
 /**
  * Operating system utils.
@@ -72,10 +71,10 @@ public final class OsUtils {
      * @return join
      */
     private static String collectionOfStringsToString(Collection<String> c, String d) {
-        if (isNotEmpty(c)) {
+        if (null != c && !c.isEmpty()) {
             StringJoiner joiner = new StringJoiner(d);
             for (String item : c) {
-                if (isNotEmpty(item)) {
+                if (!isBlank(item)) {
                     joiner.add(item);
                 }
             }
@@ -189,7 +188,7 @@ public final class OsUtils {
          * @return is it?
          */
         public boolean isOverdue() {
-            return isNotEmpty(this.maxExecuteTime)
+            return null != this.maxExecuteTime
                     && ((System.currentTimeMillis() - this.getStart().toInstant().toEpochMilli()) > this.maxExecuteTime);
         }
 
@@ -257,7 +256,7 @@ public final class OsUtils {
 
         @Override
         public Void call() throws Exception {
-            if (isNotEmpty(this.result)) {
+            if (null != this.result) {
                 execute(this.result);
             }
             return null;
@@ -340,7 +339,7 @@ public final class OsUtils {
      * Won't create file/directory
      */
     public static Path getTempInTempDirectory(String extension) {
-        if (isNotEmpty(extension)) {
+        if (!isBlank(extension)) {
             return getTempDirectory().resolve(getRandomUUID() + DELIMITER_PERIOD + extension);
         }
         return getTempDirectory().resolve(getRandomUUID());
@@ -440,7 +439,7 @@ public final class OsUtils {
         Process p = null;
         String[] callee = translateCommandline(wrapper.getCmd());
         try {
-            if (isEmpty(wrapper.getWorkdir())) {
+            if (null == wrapper.getWorkdir()) {
                 p = Runtime.getRuntime().exec(callee);
             } else {
                 p = Runtime.getRuntime().exec(callee, null, wrapper.getWorkdir().toFile());
@@ -542,7 +541,7 @@ public final class OsUtils {
      */
     public static OsCommandWrapper executeAsync(String cmd, Integer maxExecuteTime) {
         OsCommandWrapper wrapper = new OsCommandWrapper(cmd);
-        if (isNotEmpty(maxExecuteTime)) {
+        if (null != maxExecuteTime) {
             wrapper.setMaxExecuteTime(maxExecuteTime);
         }
         executeAsync(wrapper);
@@ -564,7 +563,7 @@ public final class OsUtils {
             command = "pgrep -P " + parentPid;
         }
         temp = execute(command).getOutput();
-        if (isNotEmpty(temp)) {
+        if (!temp.isEmpty()) {
             if (isLinux()) {
                 result = new ArrayList<>(temp);
             }
@@ -572,7 +571,7 @@ public final class OsUtils {
                 String s;
                 for (int i = FIRST_PROCESS_ID_INDEX; i < temp.size(); i++) {
                     s = temp.get(i).trim();
-                    if (isNotEmpty(s)) {
+                    if (!isBlank(s)) {
                         result.add(s);
                     }
                 }
