@@ -17,7 +17,7 @@ import com.ruiyun.jvppeteer.options.LaunchOptionsBuilder;
 import com.ruiyun.jvppeteer.options.PDFOptions;
 import com.ruiyun.jvppeteer.options.PageNavigateOptions;
 import static java.util.stream.Collectors.toUnmodifiableList;
-import static org.dummy.EmptinessUtils.isNotEmpty;
+import static org.dummy.EmptinessUtils.isBlank;
 import static org.dummy.OsUtils.*;
 
 /**
@@ -261,7 +261,7 @@ public final class HtmlToPdfUtils {
          */
         @SuppressWarnings("java:S3776")
         public void printoutSettings(String url) {
-            if (isNotEmpty(url)) {
+            if (!isBlank(url)) {
                 if (matches(A_3_PAPER_SIZE_NAME, url)) {
                     this.setPaperSize(PaperSize.A3);
                 }
@@ -280,12 +280,12 @@ public final class HtmlToPdfUtils {
                     marginName = entry.getKey();
                     marginRegex = entry.getValue();
                     found = groups(marginRegex, url);
-                    if (isNotEmpty(found)) {
+                    if (!found.isEmpty()) {
                         marginNameWithDigits = found.get(0);
                         found = groups(ONE_OR_MORE_DIGITS_GROUP, marginNameWithDigits);
-                        if (isNotEmpty(found)) {
+                        if (!found.isEmpty()) {
                             marginDigits = found.get(0);
-                            if (isNotEmpty(marginDigits)) {
+                            if (!isBlank(marginDigits)) {
                                 if (LEFT_MARGIN_NAME.equals(marginName)) {
                                     this.setLeft(marginDigits);
                                 }
@@ -322,29 +322,29 @@ public final class HtmlToPdfUtils {
             sj.add("--no-stop-slow-scripts");
             sj.add("--disable-smart-shrinking");
 
-            if (isNotEmpty(this.getLeft())) {
+            if (!isBlank(this.getLeft())) {
                 sj.add("--margin-left");
                 sj.add(this.getLeft());
             }
-            if (isNotEmpty(this.getRight())) {
+            if (!isBlank(this.getRight())) {
                 sj.add("--margin-right");
                 sj.add(this.getRight());
             }
-            if (isNotEmpty(this.getTop())) {
+            if (!isBlank(this.getTop())) {
                 sj.add("--margin-top");
                 sj.add(this.getTop());
             }
-            if (isNotEmpty(this.getBottom())) {
+            if (!isBlank(this.getBottom())) {
                 sj.add("--margin-bottom");
                 sj.add(this.getBottom());
             }
 
-            if (isNotEmpty(this.getPaperSize())) {
-                if (isNotEmpty(this.getPaperSize().getWidth())) {
+            if (null != this.getPaperSize()) {
+                if (!isBlank(this.getPaperSize().getWidth())) {
                     sj.add("--page-width");
                     sj.add(this.getPaperSize().getWidth());
                 }
-                if (isNotEmpty(this.getPaperSize().getHeight())) {
+                if (!isBlank(this.getPaperSize().getHeight())) {
                     sj.add("--page-height");
                     sj.add(this.getPaperSize().getHeight());
                 }
