@@ -50,17 +50,17 @@ public class CommonHandler implements HttpHandler {
     public void handle(HttpExchange httpExchange) throws IOException {
         String url = httpExchange.getRequestURI().toString();
         if (url.contains(CHROMIUM) || url.contains(HTML)) {
-            Headers headers = httpExchange.getRequestHeaders();
-            String contentType = headers.getFirst(CONTENT_TYPE);
-            if (contentType.startsWith(MULTIPART)) {
-                //found form data
-                String boundary = contentType.substring(contentType.indexOf(BOUNDARY) + BOUNDARY.length());
-                byte[] boundaryBytes = (boundary).getBytes(DEFAULT_CHARSET);
-                byte[] payload = requestBody(httpExchange);
-                ArrayList<MultiPart> list = new ArrayList<>();
-                List<Integer> offsets = indexesOf(payload, boundaryBytes);
-                for (int idx = 0; idx < offsets.size(); idx++) {
-                    try {
+            try {
+                Headers headers = httpExchange.getRequestHeaders();
+                String contentType = headers.getFirst(CONTENT_TYPE);
+                if (contentType.startsWith(MULTIPART)) {
+                    //found form data
+                    String boundary = contentType.substring(contentType.indexOf(BOUNDARY) + BOUNDARY.length());
+                    byte[] boundaryBytes = (boundary).getBytes(DEFAULT_CHARSET);
+                    byte[] payload = requestBody(httpExchange);
+                    ArrayList<MultiPart> list = new ArrayList<>();
+                    List<Integer> offsets = indexesOf(payload, boundaryBytes);
+                    for (int idx = 0; idx < offsets.size(); idx++) {
                         int startPart = offsets.get(idx);
                         int endPart;
                         if (idx < offsets.size() - 1) {
@@ -91,14 +91,14 @@ public class CommonHandler implements HttpHandler {
                                 }
                             }
                         }
-                    } catch (Exception e) {
-                        log.log(Level.SEVERE, null, e);
-                        textResponse(httpExchange, INTERNAL_SERVER_ERROR, "Error receiving multipart " + e.getMessage());
                     }
+                    saveOnDiskAndConvertToPdf(httpExchange, list);
+                } else {
+                    textResponse(httpExchange, INTERNAL_SERVER_ERROR, "No " + MULTIPART);
                 }
-                saveOnDiskAndConvertToPdf(httpExchange, list);
-            } else {
-                textResponse(httpExchange, INTERNAL_SERVER_ERROR, "No " + MULTIPART);
+            } catch (Exception e) {
+                log.log(Level.SEVERE, null, e);
+                textResponse(httpExchange, INTERNAL_SERVER_ERROR, "Error decoding multipart " + e.getMessage());
             }
         } else {
             textResponse(httpExchange, OK, STATUS_UP);
