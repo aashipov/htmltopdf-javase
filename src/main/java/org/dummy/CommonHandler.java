@@ -3,6 +3,7 @@ package org.dummy;
 import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
+
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -11,6 +12,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import static org.dummy.HtmlToPdfUtils.INDEX_HTML;
 import static org.dummy.HtmlToPdfUtils.RESULT_PDF;
 import static org.dummy.OsUtils.*;
@@ -58,39 +60,39 @@ public class CommonHandler implements HttpHandler {
                 ArrayList<MultiPart> list = new ArrayList<>();
                 List<Integer> offsets = indexesOf(payload, boundaryBytes);
                 for (int idx = 0; idx < offsets.size(); idx++) {
-                    int startPart = offsets.get(idx);
-                    int endPart;
-                    if (idx < offsets.size() - 1) {
-                        endPart = offsets.get(idx + 1) - RFC_7578_PREPEND.length();
-                    } else {
-                        endPart = payload.length;
-                    }
-                    byte[] part = Arrays.copyOfRange(payload, startPart, endPart);
-                    //look for header
-                    List<Integer> headerEnds = indexesOf(part, DOUBLE_DELIMITER);
-                    int headerEnd = !headerEnds.isEmpty() ? headerEnds.get(0) : -1;
-                    if (headerEnd > 0) {
-                        MultiPart p = new MultiPart();
-                        String header = new String(part, 0, headerEnd, DEFAULT_CHARSET);
-                        // extract name from header
-                        int nameIndex = header.indexOf(FILENAME_HEADER_LOOKUP);
-                        if (nameIndex >= 0) {
-                            //check for extra filename field
-                            int fileNameStart = header.indexOf(FILENAME_LOOKUP);
-                            if (fileNameStart >= 0) {
-                                String filename =
-                                        header.substring(
-                                                fileNameStart + FILENAME_LOOKUP.length(),
-                                                header.indexOf(DELIMITER_CARRIAGE_RETURN_AND_NEW_LINE, fileNameStart)
-                                        );
-                                p.filename = filename.replace('"', ' ').replace('\'', ' ').trim();
-                            }
+                    try {
+                        int startPart = offsets.get(idx);
+                        int endPart;
+                        if (idx < offsets.size() - 1) {
+                            endPart = offsets.get(idx + 1) - RFC_7578_PREPEND.length();
                         } else {
-                            // skip entry if no name is found
-                            continue;
+                            endPart = payload.length;
                         }
-                        p.bytes = Arrays.copyOfRange(part, headerEnd + RFC_7578_PREPEND.length(), part.length);
-                        list.add(p);
+                        //look for header
+                        List<Integer> headerEnds = indexesOf(payload, DOUBLE_DELIMITER, startPart, endPart);
+                        int headerEnd = !headerEnds.isEmpty() ? headerEnds.get(0) : -1;
+                        if (headerEnd > 0 && (headerEnd - startPart) > 0 && (headerEnd - startPart) < payload.length) {
+                            MultiPart p = new MultiPart();
+                            String header = new String(payload, startPart, (headerEnd - startPart), DEFAULT_CHARSET);
+                            // extract name from header
+                            int nameIndex = header.indexOf(FILENAME_HEADER_LOOKUP);
+                            if (nameIndex >= 0) {
+                                //check for extra filename field
+                                int fileNameStart = header.indexOf(FILENAME_LOOKUP);
+                                if (fileNameStart >= 0) {
+                                    String filename =
+                                            header.substring(
+                                                    fileNameStart + FILENAME_LOOKUP.length(),
+                                                    header.indexOf(DELIMITER_CARRIAGE_RETURN_AND_NEW_LINE, fileNameStart)
+                                            );
+                                    p.filename = filename.replace('"', ' ').replace('\'', ' ').trim();
+                                    p.bytes = Arrays.copyOfRange(payload, headerEnd + RFC_7578_PREPEND.length(), endPart);
+                                    list.add(p);
+                                }
+                            }
+                        }
+                    } catch (Exception e) {
+                        log.log(Level.SEVERE, null, e);
                     }
                 }
                 saveOnDiskAndConvertToPdf(httpExchange, list);
@@ -159,7 +161,7 @@ public class CommonHandler implements HttpHandler {
         for (int i = haystackStart; i < haystackEnd; i++) {
             boolean found = true;
             for (int j = 0; j < needle.length; j++) {
-                if (haystack[i + j] != needle[j]) {
+                if (i + j >= haystack.length || haystack[i + j] != needle[j]) {
                     found = false;
                     break;
                 }
