@@ -3,16 +3,13 @@ package org.dummy;
 import io.vertx.core.Handler;
 import io.vertx.ext.web.FileUpload;
 import io.vertx.ext.web.RoutingContext;
-import org.dummy.upload.MFileUploadImpl;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
-
+import org.dummy.upload.MFileUploadImpl;
 import static io.vertx.core.http.HttpHeaders.CONTENT_DISPOSITION;
 import static io.vertx.core.http.HttpHeaders.CONTENT_TYPE;
-import static org.dummy.EmptinessUtils.isNotEmpty;
+import static org.dummy.EmptinessUtils.isBlank;
 import static org.dummy.HtmlToPdfUtils.INDEX_HTML;
 import static org.dummy.HtmlToPdfUtils.RESULT_PDF;
 import static org.dummy.OsUtils.*;
@@ -45,7 +42,7 @@ public class CommonHandler implements Handler<RoutingContext> {
         HtmlToPdfUtils.PrinterOptions po = new HtmlToPdfUtils.PrinterOptions();
         po.printoutSettings(uri);
         for (FileUpload fileUpload : event.fileUploads()) {
-            if (isNotEmpty(fileUpload.fileName())) {
+            if (!isBlank(fileUpload.fileName())) {
                 try {
                     MFileUploadImpl mfui = (MFileUploadImpl) fileUpload;
                     if (mfui.getData().length > 0) {
