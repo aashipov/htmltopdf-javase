@@ -79,8 +79,9 @@ public class CommonHandler implements HttpHandler {
                             if (fileNameStart >= 0) {
                                 String filename =
                                         header.substring(
-                                                fileNameStart + FILENAME_LOOKUP.length(), header.indexOf(DELIMITER_CARRIAGE_RETURN_AND_NEW_LINE,
-                                                        fileNameStart));
+                                                fileNameStart + FILENAME_LOOKUP.length(),
+                                                header.indexOf(DELIMITER_CARRIAGE_RETURN_AND_NEW_LINE, fileNameStart)
+                                        );
                                 p.filename = filename.replace('"', ' ').replace('\'', ' ').trim();
                             }
                         } else {
@@ -91,17 +92,16 @@ public class CommonHandler implements HttpHandler {
                         list.add(p);
                     }
                 }
-                handle(httpExchange, list);
+                saveOnDiskAndConvertToPdf(httpExchange, list);
             } else {
-                //if no form data is present, still call handle method
-                handle(httpExchange, null);
+                textResponse(httpExchange, INTERNAL_SERVER_ERROR, "No " + MULTIPART);
             }
         } else {
             textResponse(httpExchange, OK, STATUS_UP);
         }
     }
 
-    private void handle(HttpExchange httpExchange, List<MultiPart> parts) {
+    private void saveOnDiskAndConvertToPdf(HttpExchange httpExchange, List<MultiPart> parts) {
         HtmlToPdfUtils.PrinterOptions po = new HtmlToPdfUtils.PrinterOptions();
         String url = httpExchange.getRequestURI().toString();
         po.printoutSettings(url);
