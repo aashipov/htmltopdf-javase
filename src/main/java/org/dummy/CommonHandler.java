@@ -3,16 +3,13 @@ package org.dummy;
 import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
-
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 import static org.dummy.HtmlToPdfUtils.INDEX_HTML;
 import static org.dummy.HtmlToPdfUtils.RESULT_PDF;
 import static org.dummy.OsUtils.*;
@@ -57,23 +54,22 @@ public class CommonHandler implements HttpHandler {
                     //found form data
                     String boundary = contentType.substring(contentType.indexOf(BOUNDARY) + BOUNDARY.length());
                     byte[] boundaryBytes = (boundary).getBytes(DEFAULT_CHARSET);
-                    byte[] payload = requestBody(httpExchange);
-                    ArrayList<MultiPart> list = new ArrayList<>();
-                    List<Integer> offsets = indexesOf(payload, boundaryBytes);
+                    MultipartMessage mm = new MultipartMessage();
+                    mm.payload = requestBody(httpExchange);
+                    List<Integer> offsets = indexesOf(mm.payload, boundaryBytes);
                     for (int idx = 0; idx < offsets.size(); idx++) {
                         int startPart = offsets.get(idx);
                         int endPart;
                         if (idx < offsets.size() - 1) {
                             endPart = offsets.get(idx + 1) - RFC_7578_PREPEND.length();
                         } else {
-                            endPart = payload.length;
+                            endPart = mm.payload.length;
                         }
                         //look for header
-                        List<Integer> headerEnds = indexesOf(payload, DOUBLE_DELIMITER, startPart, endPart);
+                        List<Integer> headerEnds = indexesOf(mm.payload, DOUBLE_DELIMITER, startPart, endPart);
                         int headerEnd = !headerEnds.isEmpty() ? headerEnds.get(0) : -1;
-                        if (headerEnd > 0 && (headerEnd - startPart) > 0 && (headerEnd - startPart) < payload.length) {
-                            MultiPart p = new MultiPart();
-                            String header = new String(payload, startPart, (headerEnd - startPart), DEFAULT_CHARSET);
+                        if (headerEnd > 0 && (headerEnd - startPart) > 0 && (headerEnd - startPart) < mm.payload.length) {
+                            String header = new String(mm.payload, startPart, (headerEnd - startPart), DEFAULT_CHARSET);
                             // extract name from header
                             int nameIndex = header.indexOf(FILENAME_HEADER_LOOKUP);
                             if (nameIndex >= 0) {
@@ -85,14 +81,14 @@ public class CommonHandler implements HttpHandler {
                                                     fileNameStart + FILENAME_LOOKUP.length(),
                                                     header.indexOf(DELIMITER_CARRIAGE_RETURN_AND_NEW_LINE, fileNameStart)
                                             );
-                                    p.filename = filename.replace('"', ' ').replace('\'', ' ').trim();
-                                    p.bytes = Arrays.copyOfRange(payload, headerEnd + RFC_7578_PREPEND.length(), endPart);
-                                    list.add(p);
+                                    mm.filenames.add(filename.replace('"', ' ').replace('\'', ' ').trim());
+                                    mm.fileStartIdxs.add(headerEnd + RFC_7578_PREPEND.length());
+                                    mm.fileEndIdxs.add(endPart);
                                 }
                             }
                         }
                     }
-                    saveOnDiskAndConvertToPdf(httpExchange, list);
+                    saveOnDiskAndConvertToPdf(httpExchange, mm);
                 } else {
                     textResponse(httpExchange, INTERNAL_SERVER_ERROR, "No " + MULTIPART);
                 }
@@ -105,16 +101,21 @@ public class CommonHandler implements HttpHandler {
         }
     }
 
-    private void saveOnDiskAndConvertToPdf(HttpExchange httpExchange, List<MultiPart> parts) {
+    private void saveOnDiskAndConvertToPdf(HttpExchange httpExchange, MultipartMessage mm) {
         HtmlToPdfUtils.PrinterOptions po = new HtmlToPdfUtils.PrinterOptions();
         String url = httpExchange.getRequestURI().toString();
         po.printoutSettings(url);
         createDirectory(po.getWorkdir());
         Path file;
-        for (MultiPart part : parts) {
-            file = po.getWorkdir().resolve(part.filename);
-            try {
-                Files.write(file, part.bytes);
+        if (mm.filenames.size() != mm.fileStartIdxs.size()
+                || mm.fileStartIdxs.size() != mm.fileEndIdxs.size()
+                || mm.fileEndIdxs.size() != mm.filenames.size()) {
+            textResponse(httpExchange, INTERNAL_SERVER_ERROR, "list size differ");
+        }
+        for (int i = 0; i < mm.filenames.size(); i++) {
+            file = po.getWorkdir().resolve(mm.filenames.get(i));
+            try (OutputStream outputStream = Files.newOutputStream(file)) {
+                outputStream.write(mm.payload, mm.fileStartIdxs.get(i), mm.fileEndIdxs.get(i) - mm.fileStartIdxs.get(i));
             } catch (IOException e) {
                 textResponse(httpExchange, INTERNAL_SERVER_ERROR, "Error saving multipart");
             }
@@ -174,9 +175,11 @@ public class CommonHandler implements HttpHandler {
         return result;
     }
 
-    private static class MultiPart {
-        private String filename;
-        private byte[] bytes;
+    private static class MultipartMessage {
+        private byte[] payload;
+        private final List<String> filenames = new ArrayList<>(0);
+        private final List<Integer> fileStartIdxs = new ArrayList<>(0);
+        private final List<Integer> fileEndIdxs = new ArrayList<>(0);
     }
 
     private static void textResponse(HttpExchange exchange, int rCode, String msg) {
@@ -190,6 +193,4 @@ public class CommonHandler implements HttpHandler {
             exchange.close();
         }
     }
-
-
 }
