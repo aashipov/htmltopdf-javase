@@ -71,7 +71,7 @@ public class CommonHandler implements HttpHandler {
                     int headerEnd = !headerEnds.isEmpty() ? headerEnds.get(0) : -1;
                     if (headerEnd > 0) {
                         MultiPart p = new MultiPart();
-                        String header = new String(part, 0, headerEnd, DEFAULT_CHARSET);
+                        String header = new String(payload, startPart, headerEnd, DEFAULT_CHARSET);
                         // extract name from header
                         int nameIndex = header.indexOf(FILENAME_HEADER_LOOKUP);
                         if (nameIndex >= 0) {
@@ -89,7 +89,7 @@ public class CommonHandler implements HttpHandler {
                             // skip entry if no name is found
                             continue;
                         }
-                        p.bytes = Arrays.copyOfRange(part, headerEnd + RFC_7578_PREPEND.length(), part.length);
+                        p.bytes = Arrays.copyOfRange(payload, startPart + headerEnd + RFC_7578_PREPEND.length(), endPart);
                         list.add(p);
                     }
                 }
