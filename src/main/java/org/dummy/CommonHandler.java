@@ -125,22 +125,20 @@ public class CommonHandler implements HttpHandler {
         Path indexHtml = po.getWorkdir().resolve(INDEX_HTML);
         if (indexHtml.toFile().exists() && indexHtml.toFile().canRead()) {
             po.htmlToPdf();
-            Path resultPdf = po.getWorkdir().resolve(RESULT_PDF);
-            if (resultPdf.toFile().exists() && resultPdf.toFile().isFile()) {
+            if (HtmlToPdfUtils.PrinterOptions.HTML_TO_PDF_CONVERTER_FAILED_PLACEHOLDER == po.getPdf()) {
+                textResponse(httpExchange, INTERNAL_SERVER_ERROR, "No " + RESULT_PDF);
+            } else {
                 try (OutputStream outputStream = httpExchange.getResponseBody()) {
-                    byte[] pdfContent = Files.readAllBytes(resultPdf);
                     httpExchange.getResponseHeaders().add(CONTENT_TYPE, APPLICATION_PDF);
                     httpExchange.getResponseHeaders().add(CONTENT_DISPOSITION, PDF_ATTACHED);
-                    httpExchange.sendResponseHeaders(OK, pdfContent.length);
-                    outputStream.write(pdfContent);
+                    httpExchange.sendResponseHeaders(OK, po.getPdf().length);
+                    outputStream.write(po.getPdf());
                     outputStream.flush();
                     httpExchange.getRequestBody().close();
                 } catch (IOException e) {
                     log.log(Level.SEVERE, "Error sending " + RESULT_PDF, e);
                     textResponse(httpExchange, INTERNAL_SERVER_ERROR, "Error sending " + RESULT_PDF);
                 }
-            } else {
-                textResponse(httpExchange, INTERNAL_SERVER_ERROR, "No " + RESULT_PDF);
             }
         } else {
             textResponse(httpExchange, INTERNAL_SERVER_ERROR, "No " + INDEX_HTML);

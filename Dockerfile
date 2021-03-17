@@ -4,7 +4,7 @@ USER root
 WORKDIR ${BUILD_DIR}
 COPY --chown=dummy:dummy ./ ./
 COPY --chown=${CHOWN_USER_AND_GROUP} settings.xml /dummy/.m2/
-RUN chmod +x ${BUILD_DIR}/entrypoint.bash && chown -R dummy:dummy /dummy/
+RUN chmod +x ${BUILD_DIR}/entrypoint.bash
 USER dummy
 WORKDIR ${BUILD_DIR}
 RUN mvn clean package -Dmaven.wagon.http.ssl.insecure=true -Dmaven.wagon.http.ssl.allowall=true -Dmaven.wagon.http.ssl.ignore.validity.dates=true

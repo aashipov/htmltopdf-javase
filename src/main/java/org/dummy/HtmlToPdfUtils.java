@@ -39,7 +39,6 @@ public final class HtmlToPdfUtils {
     public static class PrinterOptions {
 
         private static final String TMP = "tmp";
-        public static final Path TMP_DIR = Paths.get(".").resolve(TMP);
         private static final String DEFAULT_MARGIN = "20";
         private static final String MANY_SYMBOLS = ".*";
         private static final String A_3_PAPER_SIZE_NAME = MANY_SYMBOLS + "a3" + MANY_SYMBOLS;
@@ -56,6 +55,10 @@ public final class HtmlToPdfUtils {
         private static final String FILE_URI_PREFIX = "file://";
         private static final Map<String, String> MARGIN_NAME_TO_REGEX = fillMarginNameRegexMap();
 
+        public static final Path TMP_DIR = Paths.get(".").resolve(TMP);
+        public static final byte[] HTML_TO_PDF_CONVERTER_FAILED_PLACEHOLDER =
+                "Something went wrong with HTML to PDF converter".getBytes(DEFAULT_CHARSET);
+
         private PaperSize paperSize = PaperSize.A4;
         private boolean landscape = false;
         private String left = DEFAULT_MARGIN;
@@ -65,6 +68,7 @@ public final class HtmlToPdfUtils {
         private final Path workdir = TMP_DIR.resolve(getRandomUUID());
         private Boolean chromium = Boolean.FALSE;
         private OsCommandWrapper wrapper;
+        private byte[] pdf = HTML_TO_PDF_CONVERTER_FAILED_PLACEHOLDER;
 
         /**
          * Constructor.
@@ -83,9 +87,8 @@ public final class HtmlToPdfUtils {
                             FILE_URI_PREFIX + this.getWorkdir().resolve(INDEX_HTML).toAbsolutePath(),
                             this.buildPrintToPDFRequest()
                     );
-                    byte[] pdf = Base64.getDecoder().decode(pdfBase64);
-                    Files.write(this.getWorkdir().resolve(RESULT_PDF), pdf);
-                } catch (IOException e) {
+                    this.pdf = Base64.getDecoder().decode(pdfBase64);
+                } catch (Exception e) {
                     LOG.log(Level.SEVERE, "Chromium error", e);
                 }
             } else {
@@ -93,6 +96,12 @@ public final class HtmlToPdfUtils {
                 executeAsync(this.getWrapper());
                 if (!this.getWrapper().isOK()) {
                     LOG.info(this.getWrapper().getOutputString() + DELIMITER_NEW_LINE + this.getWrapper().getErrorString());
+                } else {
+                    try {
+                        this.pdf = Files.readAllBytes(this.getWorkdir().resolve(RESULT_PDF));
+                    } catch (IOException e) {
+                        LOG.log(Level.SEVERE, "Can not read " + RESULT_PDF, e);
+                    }
                 }
             }
         }
@@ -172,6 +181,10 @@ public final class HtmlToPdfUtils {
             this.wrapper = new OsUtils.OsCommandWrapper(this.buildWkhtmltopdfCmd());
             this.wrapper.setWorkdir(this.workdir).setMaxExecuteTime(MAX_EXECUTE_TIME);
             return this;
+        }
+
+        public byte[] getPdf() {
+            return pdf;
         }
 
         /**
