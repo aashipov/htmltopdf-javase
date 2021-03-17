@@ -10,6 +10,11 @@
             <id>kitchen-sink</id>
             <repositories>
                 <repository>
+                    <id>central</id>
+                    <name>central</name>
+                    <url>https://repo.maven.apache.org/maven2/</url>
+                </repository>
+                <repository>
                     <snapshots>
                         <enabled>false</enabled>
                     </snapshots>
@@ -17,13 +22,13 @@
                     <name>bintray</name>
                     <url>http://jcenter.bintray.com</url>
                 </repository>
-                <repository>
-                    <id>central</id>
-                    <name>central</name>
-                    <url>https://repo.maven.apache.org/maven2/</url>
-                </repository>
             </repositories>
             <pluginRepositories>
+                <pluginRepository>
+                    <id>central-plugins</id>
+                    <name>central-plugins</name>
+                    <url>https://repo.maven.apache.org/maven2/</url>
+                </pluginRepository>
                 <pluginRepository>
                     <snapshots>
                         <enabled>false</enabled>
@@ -31,11 +36,6 @@
                     <id>bintray-plugins</id>
                     <name>bintray-plugins</name>
                     <url>http://jcenter.bintray.com</url>
-                </pluginRepository>
-                <pluginRepository>
-                    <id>central-plugins</id>
-                    <name>central-plugins</name>
-                    <url>https://repo.maven.apache.org/maven2/</url>
                 </pluginRepository>
             </pluginRepositories>
         </profile>
