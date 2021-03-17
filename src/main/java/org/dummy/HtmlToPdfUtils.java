@@ -1,6 +1,7 @@
 package org.dummy;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
@@ -8,15 +9,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Stream;
-import com.ruiyun.jvppeteer.core.Puppeteer;
-import com.ruiyun.jvppeteer.core.browser.Browser;
-import com.ruiyun.jvppeteer.core.page.Page;
-import com.ruiyun.jvppeteer.options.LaunchOptions;
-import com.ruiyun.jvppeteer.options.LaunchOptionsBuilder;
-import com.ruiyun.jvppeteer.options.PDFOptions;
-import com.ruiyun.jvppeteer.options.PageNavigateOptions;
-import static java.util.stream.Collectors.toUnmodifiableList;
+import org.hildan.chrome.devtools.domains.page.PrintToPDFRequest;
 import static org.dummy.EmptinessUtils.isBlank;
 import static org.dummy.OsUtils.*;
 
@@ -27,48 +20,11 @@ public final class HtmlToPdfUtils {
 
     private static final Logger LOG = Logger.getLogger(HtmlToPdfUtils.class.getSimpleName());
     private static final int MAX_EXECUTE_TIME = 600_000;
-    private static final String CHROMIUM_OPTIONS = "--headless --remote-debugging-address=0.0.0.0 --remote-debugging-port=9222 --no-sandbox --no-zygote --disable-setuid-sandbox --disable-notifications --disable-geolocation --disable-infobars --disable-session-crashed-bubble --disable-dev-shm-usage --disable-gpu --disable-translate --disable-extensions --disable-features=site-per-process --disable-hang-monitor --disable-popup-blocking --disable-prompt-on-repost --disable-background-networking --disable-breakpad --disable-client-side-phishing-detection --disable-sync --disable-default-apps --hide-scrollbars --metrics-recording-only --mute-audio --no-first-run --enable-automation --password-store=basic --use-mock-keychain --unlimited-storage --safebrowsing-disable-auto-update --font-render-hinting=none --disable-sync-preferences --user-data-dir=" + Paths.get(".").resolve(".config").resolve("headless_shell");
     private static final String WKHTMLTOPDF_EXECUTABLE = "wkhtmltopdf";
-    private static final String CHROMIUM_EXECUTABLE = System.getProperty("chromium.executable", "/usr/bin/chromium");
-    private static final Browser browser = launchChromium();
-    private static final PageNavigateOptions pageReady = buildPageNavigateOptions();
     public static final String INDEX_HTML = "index.html";
     public static final String RESULT_PDF = "result.pdf";
 
-    /**
-     * Build {@link PageNavigateOptions} for rendering to finish.
-     * @return {@link PageNavigateOptions}
-     */
-    private static PageNavigateOptions buildPageNavigateOptions() {
-        PageNavigateOptions no = new PageNavigateOptions();
-        no.setWaitUntil(Stream.of("load", "domcontentloaded", "networkidle0", "networkidle2").collect(toUnmodifiableList()));
-        return no;
-    }
-
-    /**
-     * Build headless Chromium {@link LaunchOptions}.
-     * @return {@link LaunchOptions}
-     */
-    private static LaunchOptions buildChromiumLaunchOptions() {
-        List<String> args = Arrays.asList(CHROMIUM_OPTIONS.split(DELIMITER_SPACE));
-        return (new LaunchOptionsBuilder())
-                .withIgnoreDefaultArgs(true)
-                .withArgs(args)
-                .withExecutablePath(CHROMIUM_EXECUTABLE)
-                .build();
-    }
-
-    /**
-     * Start Chromium headless.
-     * @return {@link Browser}
-     */
-    private static Browser launchChromium() {
-        try {
-            return Puppeteer.launch(buildChromiumLaunchOptions());
-        } catch (IOException e) {
-            throw new IllegalStateException("Can not launch Chromium", e);
-        }
-    }
+    private static final double MM_IN_INCH = 25.4;
 
     /**
      * Constructor.
@@ -97,7 +53,6 @@ public final class HtmlToPdfUtils {
         private static final String RIGHT_MARGIN_NAME = "right";
         private static final String TOP_MARGIN_NAME = "top";
         private static final String BOTTOM_MARGIN_NAME = "bottom";
-        private static final String MILLIMETER_ACRONYM = "mm";
         private static final String FILE_URI_PREFIX = "file://";
         private static final Map<String, String> MARGIN_NAME_TO_REGEX = fillMarginNameRegexMap();
 
@@ -124,17 +79,14 @@ public final class HtmlToPdfUtils {
         public void htmlToPdf() {
             if (Boolean.TRUE.equals(this.getChromium())) {
                 try {
-                    Page page = browser.newPage();
-                    page.setDefaultTimeout(MAX_EXECUTE_TIME);
-                    page.setDefaultNavigationTimeout(MAX_EXECUTE_TIME);
-                    page.goTo(FILE_URI_PREFIX + this.getWorkdir().resolve(INDEX_HTML).toAbsolutePath(), pageReady);
-                    page.pdf(buildChromiumPDFOptions());
-                    page.close();
+                    String pdfBase64 = ChromiumWrapper.Companion.pdf(
+                            FILE_URI_PREFIX + this.getWorkdir().resolve(INDEX_HTML).toAbsolutePath(),
+                            this.buildPrintToPDFRequest()
+                    );
+                    byte[] pdf = Base64.getDecoder().decode(pdfBase64);
+                    Files.write(this.getWorkdir().resolve(RESULT_PDF), pdf);
                 } catch (IOException e) {
                     LOG.log(Level.SEVERE, "Chromium error", e);
-                } catch (InterruptedException e) {
-                    LOG.log(Level.SEVERE, "Chromium was interrupted", e);
-                    Thread.currentThread().interrupt();
                 }
             } else {
                 this.buildOsCommandWrapper();
@@ -353,17 +305,30 @@ public final class HtmlToPdfUtils {
             return sj.toString();
         }
 
-        private PDFOptions buildChromiumPDFOptions() {
-            PDFOptions opts = new PDFOptions();
-            opts.setPath(this.getWorkdir().resolve(RESULT_PDF).toString());
-            opts.setLandscape(this.isLandscape());
-            opts.setWidth(this.getPaperSize().getWidth() + MILLIMETER_ACRONYM);
-            opts.setHeight(this.getPaperSize().getHeight() + MILLIMETER_ACRONYM);
-            opts.getMargin().setTop(this.getTop() + MILLIMETER_ACRONYM);
-            opts.getMargin().setRight(this.getRight() + MILLIMETER_ACRONYM);
-            opts.getMargin().setBottom(this.getBottom() + MILLIMETER_ACRONYM);
-            opts.getMargin().setLeft(this.getLeft() + MILLIMETER_ACRONYM);
-            return opts;
+        private static Double mmToInch(String mm) {
+            Double mmd = Double.parseDouble(mm);
+            return mmd / MM_IN_INCH;
+        }
+
+        private PrintToPDFRequest buildPrintToPDFRequest() {
+            return new PrintToPDFRequest(
+                    this.isLandscape(),
+                    null,
+                    null,
+                    null,
+                    mmToInch(this.getPaperSize().getWidth()),
+                    mmToInch(this.getPaperSize().getHeight()),
+                    mmToInch(this.getTop()),
+                    mmToInch(this.getBottom()),
+                    mmToInch(this.getLeft()),
+                    mmToInch(this.getRight()),
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+            );
         }
     }
 
