@@ -1,9 +1,7 @@
 package org.dummy
 
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.runBlocking
 import org.hildan.chrome.devtools.domains.page.PrintToPDFRequest
-import org.hildan.chrome.devtools.domains.page.SetLifecycleEventsEnabledRequest
 import org.hildan.chrome.devtools.protocol.ChromeDPClient
 import org.hildan.chrome.devtools.targets.*
 
@@ -17,7 +15,7 @@ class ChromiumWrapper {
             runBlocking {
                 return@runBlocking ChromeDPClient("http://0.0.0.0:9222").webSocket()
             }
-
+        @JvmStatic
         fun pdf(url: String, printToPDFRequest: PrintToPDFRequest): String = runBlocking {
             val pageSession: ChromePageSession = browserSession.attachToNewPageAndAwaitPageLoad(url)
             Thread.sleep(50)

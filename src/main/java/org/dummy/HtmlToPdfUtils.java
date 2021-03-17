@@ -83,7 +83,7 @@ public final class HtmlToPdfUtils {
         public void htmlToPdf() {
             if (Boolean.TRUE.equals(this.getChromium())) {
                 try {
-                    String pdfBase64 = ChromiumWrapper.Companion.pdf(
+                    String pdfBase64 = ChromiumWrapper.pdf(
                             FILE_URI_PREFIX + this.getWorkdir().resolve(INDEX_HTML).toAbsolutePath(),
                             this.buildPrintToPDFRequest()
                     );
