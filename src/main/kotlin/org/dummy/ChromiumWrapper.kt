@@ -11,17 +11,23 @@ import org.hildan.chrome.devtools.targets.*
 class ChromiumWrapper {
 
     companion object {
+        private suspend fun browserSession() : ChromeBrowserSession {
+            return ChromeDPClient("http://0.0.0.0:9222").webSocket()
+        }
         private val browserSession: ChromeBrowserSession =
             runBlocking {
-                return@runBlocking ChromeDPClient("http://0.0.0.0:9222").webSocket()
+                browserSession()
             }
-        @JvmStatic
-        fun pdf(url: String, printToPDFRequest: PrintToPDFRequest): String = runBlocking {
+        private suspend fun pdfInner(url: String, printToPDFRequest: PrintToPDFRequest): String {
             val pageSession: ChromePageSession = browserSession.attachToNewPageAndAwaitPageLoad(url)
             Thread.sleep(50)
             val pdf: String = pageSession.page.printToPDF(printToPDFRequest).data
             pageSession.close()
-            return@runBlocking pdf
+            return pdf
+        }
+        @JvmStatic
+        fun pdf(url: String, printToPDFRequest: PrintToPDFRequest): String = runBlocking {
+            pdfInner(url, printToPDFRequest)
         }
     }
 }
