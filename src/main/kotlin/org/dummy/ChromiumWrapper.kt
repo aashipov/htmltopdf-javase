@@ -20,7 +20,7 @@ class ChromiumWrapper {
             }
         private suspend fun pdfInner(url: String, printToPDFRequest: PrintToPDFRequest): String {
             val pageSession: ChromePageSession = browserSession.attachToNewPageAndAwaitPageLoad(url)
-            Thread.sleep(50)
+            Thread.sleep(100)
             val pdf: String = pageSession.page.printToPDF(printToPDFRequest).data
             pageSession.close()
             return pdf
