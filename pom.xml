@@ -15,6 +15,8 @@
         <chrome-devtools-kotlin.version>1.3.0-862653</chrome-devtools-kotlin.version>
         <kotlin.version>1.4.31</kotlin.version>
         <kotlin.code.style>official</kotlin.code.style>
+        <maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
+        <maven-shade-plugin.version>3.2.4</maven-shade-plugin.version>
         <maven.compiler.source>11</maven.compiler.source>
         <maven.compiler.target>11</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -70,13 +72,13 @@
                     </execution>
                 </executions>
                 <configuration>
-                    <jvmTarget>1.8</jvmTarget>
+                    <jvmTarget>11</jvmTarget>
                 </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.5.1</version>
+                <version>${maven-compiler-plugin.version}</version>
                 <executions>
                     <execution>
                         <id>default-compile</id>
@@ -104,15 +106,11 @@
                         </goals>
                     </execution>
                 </executions>
-                <configuration>
-                    <source>9</source>
-                    <target>9</target>
-                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
-                <version>3.2.4</version>
+                <version>${maven-shade-plugin.version}</version>
                 <executions>
                     <execution>
                         <goals>
