@@ -1,0 +1,16 @@
+FROM centos:7
+ARG WKHTMLTOX_VERSION=0.12.6-1
+ARG WKHTMLTOX_RPM=wkhtmltox-$WKHTMLTOX_VERSION.centos7.x86_64.rpm
+ARG DUMMY_USER=dummy
+ARG J9_GZ=OpenJDK11U-jre_x64_linux_openj9_11.0.10_9_openj9-0.24.0.tar.gz
+ENV JAVA_HOME=/usr/lib/j9
+ENV PATH=${JAVA_HOME}/bin:${PATH}
+ADD https://github.com/wkhtmltopdf/packaging/releases/download/$WKHTMLTOX_VERSION/$WKHTMLTOX_RPM /tmp/
+ADD https://github.com/AdoptOpenJDK/openjdk11-binaries/releases/download/jdk-11.0.10%2B9_openj9-0.24.0/${J9_GZ} /tmp/
+# An unprivileged user without sudo, no need in chromium sandboxing or seccomp
+RUN groupadd ${DUMMY_USER} && useradd -d /${DUMMY_USER}/ -m -g ${DUMMY_USER} ${DUMMY_USER} && mkdir -p ${JAVA_HOME} && \
+yum install -y epel-release && \
+# we only need chromium-headless, but there are missing files only available in chromium package https://github.com/elastic/kibana/issues/28408
+yum install -y chromium-headless /tmp/$WKHTMLTOX_RPM && rm -rf /tmp/$WKHTMLTOX_RPM && \
+yum clean all && ln -s /usr/lib64/chromium-browser/headless_shell /usr/bin/chromium && \
+tar -xzf /tmp/${J9_GZ} -C ${JAVA_HOME} --strip-components=1 && rm -rf /tmp/${J9_GZ}
