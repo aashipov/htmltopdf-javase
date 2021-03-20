@@ -95,7 +95,7 @@ public final class HtmlToPdfUtils {
                 this.buildOsCommandWrapper();
                 executeAsync(this.getWrapper());
                 if (!this.getWrapper().isOK()) {
-                    LOG.info(this.getWrapper().getOutputString() + DELIMITER_NEW_LINE + this.getWrapper().getErrorString());
+                    LOG.info(this.getWrapper().getOutputString() + DELIMITER_LF + this.getWrapper().getErrorString());
                 } else {
                     try {
                         this.pdf = Files.readAllBytes(this.getWorkdir().resolve(RESULT_PDF));

@@ -29,7 +29,7 @@ public class CommonHandler implements HttpHandler {
     private static final String STATUS_UP = "{\"status\":\"UP\"}";
     private static final String BOUNDARY = "boundary=";
     private static final String FILES = "\"" + "files" + "\"";
-    private static final String DELIMITER_CARRIAGE_RETURN_AND_NEW_LINE = "\r" + DELIMITER_NEW_LINE;
+    private static final String DELIMITER_CARRIAGE_RETURN_AND_NEW_LINE = "\r" + DELIMITER_LF;
     private static final byte[] DOUBLE_DELIMITER =
             (DELIMITER_CARRIAGE_RETURN_AND_NEW_LINE + DELIMITER_CARRIAGE_RETURN_AND_NEW_LINE).getBytes(DEFAULT_CHARSET);
     private static final String FILENAME_EQUALS = "filename=";
