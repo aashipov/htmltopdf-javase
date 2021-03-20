@@ -57,6 +57,9 @@ public final class OsUtils {
     private static final String CMD_LINE_TOKENIZER_DELIMITERS =
             ESCAPED_DOUBLE_QUOTATION_MARK + ESCAPED_SINGLE_QUOTATION_MARK + DELIMITER_SPACE;
 
+    private static final boolean IS_WINDOWS = isWindowsInternal();
+    private static final boolean IS_LINUX = isLinuxInternal();
+
     /**
      * Constructor
      */
@@ -267,8 +270,24 @@ public final class OsUtils {
      * Is Operating System Microsoft Windows (R).
      * @return is MS Windows?
      */
-    public static boolean isWindows() {
+    private static boolean isWindowsInternal() {
         return (System.getProperty(OS_NAME_PROPERTY).toLowerCase(Locale.ENGLISH).indexOf(WIN) >= 0);
+    }
+
+    /**
+     * Is Operating System Microsoft Windows (R).
+     * @return is MS Windows?
+     */
+    public static boolean isWindows() {
+        return IS_WINDOWS;
+    }
+
+    /**
+     * Is Operating System a Linux Distro.
+     * @return is Linux?
+     */
+    private static boolean isLinuxInternal() {
+        return (System.getProperty(OS_NAME_PROPERTY).toLowerCase(Locale.ENGLISH).indexOf(LINUX) >= 0);
     }
 
     /**
@@ -276,7 +295,7 @@ public final class OsUtils {
      * @return is Linux?
      */
     public static boolean isLinux() {
-        return (System.getProperty(OS_NAME_PROPERTY).toLowerCase(Locale.ENGLISH).indexOf(LINUX) >= 0);
+        return IS_LINUX;
     }
 
     /**
