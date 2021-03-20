@@ -17,7 +17,7 @@ import static org.dummy.EmptinessUtils.isBlank;
 
 /**
  * Operating system utils.
- * Simpler than zt-exec or Apache Commons Exec
+ * Simpler than zt-exec or Apache Commons Exec, {@link Process} cross-platform mismatch bypass
  */
 public final class OsUtils {
 
@@ -102,16 +102,6 @@ public final class OsUtils {
         } catch (IOException e) {
             LOG.log(Level.FINE, "Error reading input stream", e);
         }
-    }
-
-    private static List<String> inputStreamToListOfStrings(InputStream inputStream, Charset charset) {
-        List<String> result = new ArrayList<>(0);
-        inputStreamToListOfStrings(inputStream, charset, result);
-        return result;
-    }
-
-    private static String inputStreamToString(InputStream inputStream, Charset charset, String delimiter) {
-        return collectionOfStringsToString(inputStreamToListOfStrings(inputStream, charset), delimiter);
     }
 
     /**
@@ -715,18 +705,37 @@ public final class OsUtils {
     }
 
     private static boolean isProcessRunning(String pid, String command) {
-        Process pr = null;
-        try {
-            pr = Runtime.getRuntime().exec(command);
-        } catch (IOException e) {
-            LOG.log(Level.SEVERE, "Error getting process list", e);
-        }
-        if (pr != null) {
+        OsCommandWrapper wrapper = new OsCommandWrapper(command);
+        execute(wrapper);
+        if (wrapper.isOK()) {
             String expected = pid;
-            String actual = inputStreamToString(pr.getInputStream(), getConsoleCodepage(), DELIMITER_LF);
+            String actual = wrapper.getOutputString();
             return !isBlank(actual) && actual.contains(expected);
         }
         return false;
+    }
+
+    /**
+     * Получить список PID экземпляров процесса по его имени.
+     * @param processName имя процесса
+     * @return список PID экземпляров процесса
+     */
+    public static List<String> getProcessIdByProcessName(String processName) {
+        List<String> result = new ArrayList<>();
+        if (isLinux()) {
+            result = execute("pgrep -f " + processName).getOutput();
+        }
+        if (isWmicWindows()) {
+            List<String> raw = execute("wmic process where \"name like \'%" + processName + "%\'\" get processid").getOutput();
+            if (raw.size() > 2) {
+                for (int i = FIRST_PROCESS_ID_INDEX; i < raw.size(); i++) {
+                    if (!isBlank(raw.get(i).trim())) {
+                        result.add(raw.get(i).trim());
+                    }
+                }
+            }
+        }
+        return result;
     }
 
     /**

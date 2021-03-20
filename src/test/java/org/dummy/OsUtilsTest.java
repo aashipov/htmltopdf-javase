@@ -3,10 +3,10 @@ package org.dummy;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import static org.dummy.EmptinessUtils.isBlank;
@@ -74,10 +74,18 @@ class OsUtilsTest {
         }
     }
 
+    @Test
+    public void isProcessAliveTest(){
+        List<String> javaPids = getProcessIdByProcessName("java");
+        for (String pid : javaPids) {
+            assertTrue(isProcessAlive(pid), "Every instance of java is running");
+        }
+    }
+
     @Disabled("proof of concept")
     @Test
     void whyOsUtils() throws IOException, InterruptedException {
-        final long timeout = 3L;
+        final long timeout = 10L;
         ProcessBuilder processBuilder = new ProcessBuilder().command(translateCommandline(get30SecondsSleepCmdText()));
         Process process = processBuilder.start();
         if (!process.waitFor(timeout, TimeUnit.SECONDS)) {
