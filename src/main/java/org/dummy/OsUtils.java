@@ -26,7 +26,7 @@ public final class OsUtils {
     private static final String ESCAPED_DOUBLE_QUOTATION_MARK = "\"";
     private static final String ESCAPED_SINGLE_QUOTATION_MARK = "\'";
     public static final String DELIMITER_SPACE = " ";
-    public static final String DELIMITER_NEW_LINE = "\n";
+    public static final String DELIMITER_LF = "\n";
     public static final String EMPTY_STRING = "";
     private static final String DELIMITER_PERIOD = ".";
 
@@ -102,6 +102,16 @@ public final class OsUtils {
         } catch (IOException e) {
             LOG.log(Level.FINE, "Error reading input stream", e);
         }
+    }
+
+    private static List<String> inputStreamToListOfStrings(InputStream inputStream, Charset charset) {
+        List<String> result = new ArrayList<>(0);
+        inputStreamToListOfStrings(inputStream, charset, result);
+        return result;
+    }
+
+    private static String inputStreamToString(InputStream inputStream, Charset charset, String delimiter) {
+        return collectionOfStringsToString(inputStreamToListOfStrings(inputStream, charset), delimiter);
     }
 
     /**
@@ -220,11 +230,11 @@ public final class OsUtils {
         }
 
         public String getErrorString() {
-            return collectionOfStringsToString(this.error, DELIMITER_NEW_LINE);
+            return collectionOfStringsToString(this.error, DELIMITER_LF);
         }
 
         public String getOutputString() {
-            return collectionOfStringsToString(this.output, DELIMITER_NEW_LINE);
+            return collectionOfStringsToString(this.output, DELIMITER_LF);
         }
 
         @Override
@@ -686,6 +696,52 @@ public final class OsUtils {
         final byte[] buffer = new byte[BUFFER_SIZE];
         while ((bytesRead = input.read(buffer)) != -1) {
             output.write(buffer, 0, bytesRead);
+        }
+    }
+
+    /**
+     * Is Process running?.
+     * @param pidStr Process ID string
+     * @return is running?
+     */
+    public static boolean isProcessAlive(String pidStr) {
+        String command = "";
+        if (isWmicWindows()) {
+            command = "wmic process where (processid = " + pidStr + ") get processid";
+        } else if (isLinux()) {
+            command = "ps -p " + pidStr + " --format pid";
+        }
+        return isProcessRunning(pidStr, command);
+    }
+
+    private static boolean isProcessRunning(String pid, String command) {
+        Process pr = null;
+        try {
+            pr = Runtime.getRuntime().exec(command);
+        } catch (IOException e) {
+            LOG.log(Level.SEVERE, "Error getting process list", e);
+        }
+        if (pr != null) {
+            String expected = pid;
+            String actual = inputStreamToString(pr.getInputStream(), getConsoleCodepage(), DELIMITER_LF);
+            return !isBlank(actual) && actual.contains(expected);
+        }
+        return false;
+    }
+
+    /**
+     * Use JDK 9+ {@link InputStream#transferTo(OutputStream)} to get a {@link String} out of {@link InputStream}.
+     * @param inputStream {@link InputStream}
+     * @param charset {@link Charset}
+     * @return {@link String} в {@link Charset}
+     * @throws IOException copy
+     * Will not {@link InputStream#close()}
+     */
+    public static String inputStreamToStringJdk9Plus(InputStream inputStream, Charset charset) throws IOException {
+        try (ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream()) {
+            inputStream.transferTo(byteArrayOutputStream);
+            byteArrayOutputStream.flush();
+            return byteArrayOutputStream.toString(charset);
         }
     }
 }
