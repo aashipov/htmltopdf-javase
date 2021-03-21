@@ -102,7 +102,7 @@ public final class HtmlToPdfUtils {
         private static final Map<String, String> MARGIN_NAME_TO_REGEX = fillMarginNameRegexMap();
 
         public static final Path TMP_DIR = Paths.get(".").resolve(TMP);
-        public static final byte[] HTML_TO_PDF_CONVERTER_FAILED_PLACEHOLDER =
+        private static final byte[] HTML_TO_PDF_CONVERTER_FAILED_PLACEHOLDER =
                 "Something went wrong with HTML to PDF converter".getBytes(DEFAULT_CHARSET);
 
         private PaperSize paperSize = PaperSize.A4;
@@ -232,8 +232,20 @@ public final class HtmlToPdfUtils {
             return this;
         }
 
+        /**
+         * Get PDF file content.
+         * @return bytes
+         */
         public byte[] getPdf() {
-            return pdf;
+            return this.pdf;
+        }
+
+        /**
+         * Was PDF created?
+         * @return was?
+         */
+        public boolean isPdf() {
+            return this.pdf != HTML_TO_PDF_CONVERTER_FAILED_PLACEHOLDER;
         }
 
         /**

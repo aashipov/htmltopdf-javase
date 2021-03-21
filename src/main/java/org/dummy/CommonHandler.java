@@ -125,9 +125,7 @@ public class CommonHandler implements HttpHandler {
         Path indexHtml = po.getWorkdir().resolve(INDEX_HTML);
         if (indexHtml.toFile().exists() && indexHtml.toFile().canRead()) {
             po.htmlToPdf();
-            if (HtmlToPdfUtils.PrinterOptions.HTML_TO_PDF_CONVERTER_FAILED_PLACEHOLDER == po.getPdf()) {
-                textResponse(httpExchange, INTERNAL_SERVER_ERROR, "No " + RESULT_PDF);
-            } else {
+            if (po.isPdf()) {
                 try (OutputStream outputStream = httpExchange.getResponseBody()) {
                     httpExchange.getResponseHeaders().add(CONTENT_TYPE, APPLICATION_PDF);
                     httpExchange.getResponseHeaders().add(CONTENT_DISPOSITION, PDF_ATTACHED);
@@ -139,6 +137,8 @@ public class CommonHandler implements HttpHandler {
                     log.log(Level.SEVERE, "Error sending " + RESULT_PDF, e);
                     textResponse(httpExchange, INTERNAL_SERVER_ERROR, "Error sending " + RESULT_PDF);
                 }
+            } else {
+                textResponse(httpExchange, INTERNAL_SERVER_ERROR, "No " + RESULT_PDF);
             }
         } else {
             textResponse(httpExchange, INTERNAL_SERVER_ERROR, "No " + INDEX_HTML);
