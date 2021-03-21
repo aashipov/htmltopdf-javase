@@ -7,7 +7,3 @@ Expects chromium executable at /usr/bin/chromium. Use chromium.executable system
 ##### Docker, single instance #####
 
 ```docker pull aashipov/htmltopdf-javase:kt && docker run -d --rm --name=htmltopdf-javase -p 8080:8080 aashipov/htmltopdf-javase:kt```
-
-##### Docker, three instance behind HAProxy #####
-
-```cd test``` ```cd farm``` ```bash farm-refresh```

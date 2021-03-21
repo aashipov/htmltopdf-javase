@@ -183,8 +183,20 @@ public final class HtmlToPdfUtils {
             return this;
         }
 
+        /**
+         * Get PDF file content.
+         * @return bytes
+         */
         public byte[] getPdf() {
-            return pdf;
+            return this.pdf;
+        }
+
+        /**
+         * Was PDF created?
+         * @return was?
+         */
+        public boolean isPdf() {
+            return this.pdf != HTML_TO_PDF_CONVERTER_FAILED_PLACEHOLDER;
         }
 
         /**
