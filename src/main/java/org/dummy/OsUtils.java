@@ -17,7 +17,7 @@ import static org.dummy.EmptinessUtils.isBlank;
 
 /**
  * Operating system utils.
- * Simpler than zt-exec or Apache Commons Exec
+ * Simpler than zt-exec or Apache Commons Exec, {@link Process} cross-platform mismatch bypass
  */
 public final class OsUtils {
 
@@ -26,7 +26,7 @@ public final class OsUtils {
     private static final String ESCAPED_DOUBLE_QUOTATION_MARK = "\"";
     private static final String ESCAPED_SINGLE_QUOTATION_MARK = "\'";
     public static final String DELIMITER_SPACE = " ";
-    public static final String DELIMITER_NEW_LINE = "\n";
+    public static final String DELIMITER_LF = "\n";
     public static final String EMPTY_STRING = "";
     private static final String DELIMITER_PERIOD = ".";
 
@@ -56,6 +56,9 @@ public final class OsUtils {
 
     private static final String CMD_LINE_TOKENIZER_DELIMITERS =
             ESCAPED_DOUBLE_QUOTATION_MARK + ESCAPED_SINGLE_QUOTATION_MARK + DELIMITER_SPACE;
+
+    private static final boolean IS_WINDOWS = isWindowsInternal();
+    private static final boolean IS_LINUX = isLinuxInternal();
 
     /**
      * Constructor
@@ -217,11 +220,11 @@ public final class OsUtils {
         }
 
         public String getErrorString() {
-            return collectionOfStringsToString(this.error, DELIMITER_NEW_LINE);
+            return collectionOfStringsToString(this.error, DELIMITER_LF);
         }
 
         public String getOutputString() {
-            return collectionOfStringsToString(this.output, DELIMITER_NEW_LINE);
+            return collectionOfStringsToString(this.output, DELIMITER_LF);
         }
 
         @Override
@@ -267,8 +270,24 @@ public final class OsUtils {
      * Is Operating System Microsoft Windows (R).
      * @return is MS Windows?
      */
-    public static boolean isWindows() {
+    private static boolean isWindowsInternal() {
         return (System.getProperty(OS_NAME_PROPERTY).toLowerCase(Locale.ENGLISH).indexOf(WIN) >= 0);
+    }
+
+    /**
+     * Is Operating System Microsoft Windows (R).
+     * @return is MS Windows?
+     */
+    public static boolean isWindows() {
+        return IS_WINDOWS;
+    }
+
+    /**
+     * Is Operating System a Linux Distro.
+     * @return is Linux?
+     */
+    private static boolean isLinuxInternal() {
+        return (System.getProperty(OS_NAME_PROPERTY).toLowerCase(Locale.ENGLISH).indexOf(LINUX) >= 0);
     }
 
     /**
@@ -276,7 +295,7 @@ public final class OsUtils {
      * @return is Linux?
      */
     public static boolean isLinux() {
-        return (System.getProperty(OS_NAME_PROPERTY).toLowerCase(Locale.ENGLISH).indexOf(LINUX) >= 0);
+        return IS_LINUX;
     }
 
     /**
@@ -667,6 +686,71 @@ public final class OsUtils {
         final byte[] buffer = new byte[BUFFER_SIZE];
         while ((bytesRead = input.read(buffer)) != -1) {
             output.write(buffer, 0, bytesRead);
+        }
+    }
+
+    /**
+     * Is Process running?.
+     * @param pidStr Process ID string
+     * @return is running?
+     */
+    public static boolean isProcessAlive(String pidStr) {
+        String command = "";
+        if (isWmicWindows()) {
+            command = "wmic process where (processid = " + pidStr + ") get processid";
+        } else if (isLinux()) {
+            command = "ps -p " + pidStr + " --format pid";
+        }
+        return isProcessRunning(pidStr, command);
+    }
+
+    private static boolean isProcessRunning(String pid, String command) {
+        OsCommandWrapper wrapper = new OsCommandWrapper(command);
+        execute(wrapper);
+        if (wrapper.isOK()) {
+            String expected = pid;
+            String actual = wrapper.getOutputString();
+            return !isBlank(actual) && actual.contains(expected);
+        }
+        return false;
+    }
+
+    /**
+     * Получить список PID экземпляров процесса по его имени.
+     * @param processName имя процесса
+     * @return список PID экземпляров процесса
+     */
+    public static List<String> getProcessIdByProcessName(String processName) {
+        List<String> result = new ArrayList<>();
+        if (isLinux()) {
+            result = execute("pgrep -f " + processName).getOutput();
+        }
+        if (isWmicWindows()) {
+            List<String> raw = execute("wmic process where \"name like \'%" + processName + "%\'\" get processid").getOutput();
+            if (raw.size() > 2) {
+                for (int i = FIRST_PROCESS_ID_INDEX; i < raw.size(); i++) {
+                    if (!isBlank(raw.get(i).trim())) {
+                        result.add(raw.get(i).trim());
+                    }
+                }
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Use JDK 9+ {@link InputStream#transferTo(OutputStream)} to get a {@link String} out of {@link InputStream}.
+     * @param inputStream {@link InputStream}
+     * @param charset {@link Charset}
+     * @return {@link String} в {@link Charset}
+     * @throws IOException copy
+     * Will not {@link InputStream#close()}
+     */
+    public static String inputStreamToStringJdk9Plus(InputStream inputStream, Charset charset) throws IOException {
+        try (ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream()) {
+            inputStream.transferTo(byteArrayOutputStream);
+            byteArrayOutputStream.flush();
+            return byteArrayOutputStream.toString(charset);
         }
     }
 }

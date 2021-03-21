@@ -10,8 +10,10 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.Part;
+
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.handler.AbstractHandler;
+
 import static org.dummy.EmptinessUtils.isBlank;
 import static org.dummy.HtmlToPdfUtils.*;
 import static org.dummy.HtmlToPdfUtils.PrinterOptions.TMP_DIR;
@@ -68,21 +70,11 @@ public class CommonHandler extends AbstractHandler {
                 // ensure we don't have "/" and ".." in the raw form.
                 filename = URLEncoder.encode(filename, DEFAULT_CHARSET_NAME);
                 Path file = po.getWorkdir().resolve(filename);
-                InputStream inputStream = null;
-                OutputStream outputStream = null;
-                try {
-                    inputStream = part.getInputStream();
-                    outputStream = Files.newOutputStream(file, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+                try (InputStream inputStream = part.getInputStream();
+                     OutputStream outputStream = Files.newOutputStream(file, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)) {
                     inputStream.transferTo(outputStream);
                 } catch (Exception e) {
                     //
-                } finally {
-                    if (null != inputStream) {
-                        inputStream.close();
-                    }
-                    if (null != outputStream) {
-                        outputStream.close();
-                    }
                 }
             }
         }
@@ -90,28 +82,14 @@ public class CommonHandler extends AbstractHandler {
 
     private static void convert(HttpServletResponse response, HtmlToPdfUtils.PrinterOptions po) throws IOException {
         po.htmlToPdf();
-        Path resultPdf = po.getWorkdir().resolve(RESULT_PDF);
-        if (resultPdf.toFile().exists() && resultPdf.toFile().isFile()) {
+        if (po.isPdf()) {
             response.setContentType(APPLICATION_PDF);
             response.setHeader(CONTENT_DISPOSITION, PDF_ATTACHED);
-            InputStream inputStream = null;
-            OutputStream outputStream = null;
-            try {
-                inputStream = Files.newInputStream(resultPdf);
-                outputStream = response.getOutputStream();
-                inputStream.transferTo(outputStream);
-            } catch (Exception e) {
-                //
-            } finally {
-                if (null != inputStream) {
-                    inputStream.close();
-                }
-                if (null != outputStream) {
-                    outputStream.close();
-                }
+            try (OutputStream outputStream = response.getOutputStream()) {
+                outputStream.write(po.getPdf());
             }
         } else {
-            internalServerError(response, po.getWrapper().getOutputString() + DELIMITER_NEW_LINE + po.getWrapper().getErrorString());
+            internalServerError(response, po.getWrapper().getOutputString() + DELIMITER_LF + po.getWrapper().getErrorString());
         }
     }
 
