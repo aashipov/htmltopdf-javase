@@ -43,27 +43,15 @@ public class HtmlToPdfHandler implements HttpHandler {
 
     private static void convert(HttpServerExchange exchange, HtmlToPdfUtils.PrinterOptions po) throws IOException {
         po.htmlToPdf();
-        Path resultPdf = po.getWorkdir().resolve(RESULT_PDF);
-        if (resultPdf.toFile().exists() && resultPdf.toFile().isFile()) {
+        if (po.isPdf()) {
             exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, APPLICATION_PDF);
             exchange.getResponseHeaders().put(Headers.CONTENT_DISPOSITION, PDF_ATTACHED);
             exchange.startBlocking();
-            InputStream inputStream = null;
-            OutputStream outputStream = null;
-            try {
-                inputStream = Files.newInputStream(resultPdf);
-                outputStream = exchange.getOutputStream();
-                inputStream.transferTo(outputStream);
-            } finally {
-                if (null != inputStream) {
-                    inputStream.close();
-                }
-                if (null != outputStream) {
-                    outputStream.close();
-                }
+            try (OutputStream outputStream = exchange.getOutputStream()) {
+                outputStream.write(po.getPdf());
             }
         } else {
-            internalServerError(exchange, po.getWrapper().getOutputString() + DELIMITER_NEW_LINE + po.getWrapper().getErrorString());
+            internalServerError(exchange, po.getWrapper().getOutputString() + DELIMITER_LF + po.getWrapper().getErrorString());
         }
     }
 
