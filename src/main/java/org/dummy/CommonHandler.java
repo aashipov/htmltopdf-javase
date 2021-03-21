@@ -1,14 +1,15 @@
 package org.dummy;
 
 import io.vertx.core.Handler;
+import io.vertx.core.buffer.Buffer;
 import io.vertx.ext.web.FileUpload;
 import io.vertx.ext.web.RoutingContext;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import org.dummy.upload.MFileUploadImpl;
-import static io.vertx.core.http.HttpHeaders.CONTENT_DISPOSITION;
-import static io.vertx.core.http.HttpHeaders.CONTENT_TYPE;
+
+import static io.vertx.core.http.HttpHeaders.*;
 import static org.dummy.EmptinessUtils.isBlank;
 import static org.dummy.HtmlToPdfUtils.INDEX_HTML;
 import static org.dummy.HtmlToPdfUtils.RESULT_PDF;
@@ -58,11 +59,10 @@ public class CommonHandler implements Handler<RoutingContext> {
         Path indexHtml = po.getWorkdir().resolve(INDEX_HTML);
         if (indexHtml.toFile().exists() && indexHtml.toFile().canRead()) {
             po.htmlToPdf();
-            Path resultPdf = po.getWorkdir().resolve(RESULT_PDF);
-            if (resultPdf.toFile().exists() && resultPdf.toFile().canRead()) {
+            if (po.isPdf()) {
                 sendPdf(event, po);
             } else {
-                internalServerError(event, po.getWrapper().getOutputString() + DELIMITER_NEW_LINE + po.getWrapper().getErrorString());
+                internalServerError(event, po.getWrapper().getOutputString() + DELIMITER_LF + po.getWrapper().getErrorString());
             }
         } else {
             internalServerError(event, INDEX_HTML_NOT_FOUND);
@@ -94,6 +94,7 @@ public class CommonHandler implements Handler<RoutingContext> {
                 .response()
                 .putHeader(CONTENT_TYPE, APPLICATION_PDF)
                 .putHeader(CONTENT_DISPOSITION, PDF_ATTACHED)
-                .sendFile(po.getWorkdir().resolve(RESULT_PDF).toString());
+                .putHeader(CONTENT_LENGTH, "" + po.getPdf().length)
+                .send(Buffer.buffer(po.getPdf()));
     }
 }

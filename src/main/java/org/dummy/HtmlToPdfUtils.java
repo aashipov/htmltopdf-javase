@@ -1,6 +1,7 @@
 package org.dummy;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
@@ -37,7 +38,6 @@ public final class HtmlToPdfUtils {
 
     /**
      * Build {@link PageNavigateOptions} for rendering to finish.
-     *
      * @return {@link PageNavigateOptions}
      */
     private static PageNavigateOptions buildPageNavigateOptions() {
@@ -48,7 +48,6 @@ public final class HtmlToPdfUtils {
 
     /**
      * Build headless Chromium {@link LaunchOptions}.
-     *
      * @return {@link LaunchOptions}
      */
     private static LaunchOptions buildChromiumLaunchOptions() {
@@ -62,7 +61,6 @@ public final class HtmlToPdfUtils {
 
     /**
      * Start Chromium headless.
-     *
      * @return {@link Browser}
      */
     private static Browser launchChromium() {
@@ -86,7 +84,6 @@ public final class HtmlToPdfUtils {
     public static class PrinterOptions {
 
         private static final String TMP = "tmp";
-        public static final Path TMP_DIR = Paths.get(".").resolve(TMP);
         private static final String DEFAULT_MARGIN = "20";
         private static final String MANY_SYMBOLS = ".*";
         private static final String A_3_PAPER_SIZE_NAME = MANY_SYMBOLS + "a3" + MANY_SYMBOLS;
@@ -104,15 +101,20 @@ public final class HtmlToPdfUtils {
         private static final String FILE_URI_PREFIX = "file://";
         private static final Map<String, String> MARGIN_NAME_TO_REGEX = fillMarginNameRegexMap();
 
+        public static final Path TMP_DIR = Paths.get(".").resolve(TMP);
+        private static final byte[] HTML_TO_PDF_CONVERTER_FAILED_PLACEHOLDER =
+                "Something went wrong with HTML to PDF converter".getBytes(DEFAULT_CHARSET);
+
         private PaperSize paperSize = PaperSize.A4;
         private boolean landscape = false;
         private String left = DEFAULT_MARGIN;
         private String right = DEFAULT_MARGIN;
-        private String top = DEFAULT_MARGIN;
+        private String top  = DEFAULT_MARGIN;
         private String bottom = DEFAULT_MARGIN;
         private final Path workdir = TMP_DIR.resolve(getRandomUUID());
         private Boolean chromium = Boolean.FALSE;
         private OsCommandWrapper wrapper;
+        private byte[] pdf = HTML_TO_PDF_CONVERTER_FAILED_PLACEHOLDER;
 
         /**
          * Constructor.
@@ -131,7 +133,7 @@ public final class HtmlToPdfUtils {
                     page.setDefaultTimeout(MAX_EXECUTE_TIME);
                     page.setDefaultNavigationTimeout(MAX_EXECUTE_TIME);
                     page.goTo(FILE_URI_PREFIX + this.getWorkdir().resolve(INDEX_HTML).toAbsolutePath(), pageReady);
-                    page.pdf(buildChromiumPDFOptions());
+                    this.pdf = page.pdf(buildChromiumPDFOptions());
                     page.close();
                 } catch (IOException e) {
                     LOG.log(Level.SEVERE, "Chromium error", e);
@@ -143,7 +145,12 @@ public final class HtmlToPdfUtils {
                 this.buildOsCommandWrapper();
                 executeAsync(this.getWrapper());
                 if (!this.getWrapper().isOK()) {
-                    LOG.info(this.getWrapper().getOutputString() + DELIMITER_NEW_LINE + this.getWrapper().getErrorString());
+                    LOG.info(this.getWrapper().getOutputString() + DELIMITER_LF + this.getWrapper().getErrorString());
+                }
+                try {
+                    this.pdf = Files.readAllBytes(this.getWorkdir().resolve(RESULT_PDF));
+                } catch (IOException e) {
+                    LOG.log(Level.SEVERE, "Can not read " + RESULT_PDF, e);
                 }
             }
         }
@@ -226,9 +233,24 @@ public final class HtmlToPdfUtils {
         }
 
         /**
+         * Get PDF file content.
+         * @return bytes
+         */
+        public byte[] getPdf() {
+            return this.pdf;
+        }
+
+        /**
+         * Was PDF created?
+         * @return was?
+         */
+        public boolean isPdf() {
+            return this.pdf != HTML_TO_PDF_CONVERTER_FAILED_PLACEHOLDER;
+        }
+
+        /**
          * Does string matches regex
-         *
-         * @param regex  regex
+         * @param regex regex
          * @param string string
          * @return matches?
          */
@@ -239,8 +261,7 @@ public final class HtmlToPdfUtils {
 
         /**
          * Extract groups matching regex.
-         *
-         * @param regex  regex
+         * @param regex regex
          * @param string string
          * @return {@link List} {@link String} of groups matched
          */
@@ -256,7 +277,6 @@ public final class HtmlToPdfUtils {
 
         /**
          * Extract paper size and margins from URL.
-         *
          * @param url request URL
          */
         @SuppressWarnings("java:S3776")
@@ -361,7 +381,6 @@ public final class HtmlToPdfUtils {
 
         private PDFOptions buildChromiumPDFOptions() {
             PDFOptions opts = new PDFOptions();
-            opts.setPath(this.getWorkdir().resolve(RESULT_PDF).toString());
             opts.setLandscape(this.isLandscape());
             opts.setWidth(this.getPaperSize().getWidth() + MILLIMETER_ACRONYM);
             opts.setHeight(this.getPaperSize().getHeight() + MILLIMETER_ACRONYM);
@@ -378,15 +397,15 @@ public final class HtmlToPdfUtils {
      */
     private enum PaperSize {
         A4("210", "297"),
-        A3("297", "420");
+        A3("297", "420")
+        ;
 
         private final String width;
         private final String height;
 
         /**
          * Constructor.
-         *
-         * @param width  width
+         * @param width width
          * @param height height
          */
         PaperSize(String width, String height) {

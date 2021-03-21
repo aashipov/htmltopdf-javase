@@ -2,7 +2,6 @@ package org.dummy;
 
 import java.io.*;
 import java.math.BigDecimal;
-import java.nio.channels.FileChannel;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -18,7 +17,7 @@ import static org.dummy.EmptinessUtils.isBlank;
 
 /**
  * Operating system utils.
- * Simpler than zt-exec or Apache Commons Exec
+ * Simpler than zt-exec or Apache Commons Exec, {@link Process} cross-platform mismatch bypass
  */
 public final class OsUtils {
 
@@ -27,7 +26,7 @@ public final class OsUtils {
     private static final String ESCAPED_DOUBLE_QUOTATION_MARK = "\"";
     private static final String ESCAPED_SINGLE_QUOTATION_MARK = "\'";
     public static final String DELIMITER_SPACE = " ";
-    public static final String DELIMITER_NEW_LINE = "\n";
+    public static final String DELIMITER_LF = "\n";
     public static final String EMPTY_STRING = "";
     private static final String DELIMITER_PERIOD = ".";
 
@@ -58,6 +57,9 @@ public final class OsUtils {
     private static final String CMD_LINE_TOKENIZER_DELIMITERS =
             ESCAPED_DOUBLE_QUOTATION_MARK + ESCAPED_SINGLE_QUOTATION_MARK + DELIMITER_SPACE;
 
+    private static final boolean IS_WINDOWS = isWindowsInternal();
+    private static final boolean IS_LINUX = isLinuxInternal();
+
     /**
      * Constructor
      */
@@ -67,7 +69,6 @@ public final class OsUtils {
 
     /**
      * Join collection of string.
-     *
      * @param c collection of string
      * @param d delimiter
      * @return join
@@ -88,10 +89,9 @@ public final class OsUtils {
 
     /**
      * InputStream to List of String.
-     *
-     * @param source  InputStream
+     * @param source InputStream
      * @param charset charset
-     * @param inout   List of String
+     * @param inout List of String
      */
     private static void inputStreamToListOfStrings(InputStream source, Charset charset, List<String> inout) {
         String line;
@@ -120,7 +120,6 @@ public final class OsUtils {
 
         /**
          * Constructor.
-         *
          * @param cmd command text
          */
         public OsCommandWrapper(String cmd) {
@@ -181,7 +180,6 @@ public final class OsUtils {
 
         /**
          * If a wrapper has PID?.
-         *
          * @return has it?
          */
         public boolean hasPid() {
@@ -190,7 +188,6 @@ public final class OsUtils {
 
         /**
          * Is command running longer than maxExecuteTime?.
-         *
          * @return is it?
          */
         public boolean isOverdue() {
@@ -200,7 +197,6 @@ public final class OsUtils {
 
         /**
          * Is exitCode == 0?.
-         *
          * @return is?
          */
         public boolean isOK() {
@@ -224,11 +220,11 @@ public final class OsUtils {
         }
 
         public String getErrorString() {
-            return collectionOfStringsToString(this.error, DELIMITER_NEW_LINE);
+            return collectionOfStringsToString(this.error, DELIMITER_LF);
         }
 
         public String getOutputString() {
-            return collectionOfStringsToString(this.output, DELIMITER_NEW_LINE);
+            return collectionOfStringsToString(this.output, DELIMITER_LF);
         }
 
         @Override
@@ -255,7 +251,6 @@ public final class OsUtils {
 
         /**
          * Constructor by wrapper.
-         *
          * @param wrapper wrapper
          */
         public OsCommandCallable(OsCommandWrapper wrapper) {
@@ -273,25 +268,38 @@ public final class OsUtils {
 
     /**
      * Is Operating System Microsoft Windows (R).
-     *
      * @return is MS Windows?
      */
-    public static boolean isWindows() {
+    private static boolean isWindowsInternal() {
         return (System.getProperty(OS_NAME_PROPERTY).toLowerCase(Locale.ENGLISH).indexOf(WIN) >= 0);
     }
 
     /**
+     * Is Operating System Microsoft Windows (R).
+     * @return is MS Windows?
+     */
+    public static boolean isWindows() {
+        return IS_WINDOWS;
+    }
+
+    /**
      * Is Operating System a Linux Distro.
-     *
      * @return is Linux?
      */
-    public static boolean isLinux() {
+    private static boolean isLinuxInternal() {
         return (System.getProperty(OS_NAME_PROPERTY).toLowerCase(Locale.ENGLISH).indexOf(LINUX) >= 0);
     }
 
     /**
+     * Is Operating System a Linux Distro.
+     * @return is Linux?
+     */
+    public static boolean isLinux() {
+        return IS_LINUX;
+    }
+
+    /**
      * Get Operating System version.
-     *
      * @return operating system version.
      */
     private static String getOSVersion() {
@@ -300,7 +308,6 @@ public final class OsUtils {
 
     /**
      * Is MS Windows a WMIC one (version equal 6.0 or newer).
-     *
      * @return Is MS Windows version equal 6.0 or newer?
      */
     private static boolean isWmicWindows() {
@@ -309,7 +316,6 @@ public final class OsUtils {
 
     /**
      * Assume OS console codepage name.
-     *
      * @return codepage name
      */
     private static Charset getConsoleCodepage() {
@@ -322,7 +328,6 @@ public final class OsUtils {
 
     /**
      * Get random UUID as string.
-     *
      * @return random UUID
      */
     public static String getRandomUUID() {
@@ -331,7 +336,6 @@ public final class OsUtils {
 
     /**
      * Get {@link Path} to OS directory for temporary files (e.g., /tmp in most of *nix).
-     *
      * @return {@link Path}
      */
     public static Path getTempDirectory() {
@@ -340,7 +344,6 @@ public final class OsUtils {
 
     /**
      * Get {@link Path} to a temporary file/directory in OS directory for temporary files.
-     *
      * @return {@link Path}
      * Won't create file/directory
      */
@@ -350,7 +353,6 @@ public final class OsUtils {
 
     /**
      * Get {@link Path} to a temporary file/directory in OS directory for temporary files.
-     *
      * @param extension file extension. e.g. "zip"
      * @return {@link Path}
      * Won't create file/directory
@@ -364,7 +366,6 @@ public final class OsUtils {
 
     /**
      * Crack a command line.
-     *
      * @param toProcess the command line to process
      * @return the command line broken into strings. An empty or null toProcess
      * parameter results in a zero sized array
@@ -451,7 +452,6 @@ public final class OsUtils {
 
     /**
      * Execute wrapped OS command in the same thread.
-     *
      * @param wrapper wrapper
      */
     public static void execute(OsCommandWrapper wrapper) {
@@ -494,7 +494,6 @@ public final class OsUtils {
 
     /**
      * Execute OS command synchronously.
-     *
      * @param cmd command
      * @return {@link OsCommandWrapper}
      */
@@ -506,7 +505,6 @@ public final class OsUtils {
 
     /**
      * Execute OS command in another thread.
-     *
      * @param wrapper {@link OsCommandWrapper}
      */
     @SuppressWarnings("java:S135")
@@ -545,7 +543,6 @@ public final class OsUtils {
 
     /**
      * Execute OS command asynchronously.
-     *
      * @param cmd command
      * @return {@link OsCommandWrapper}
      */
@@ -557,7 +554,6 @@ public final class OsUtils {
 
     /**
      * Execute OS command in another thread.
-     *
      * @param cmd            command
      * @param maxExecuteTime timeout
      * @return {@link OsCommandWrapper}
@@ -573,7 +569,6 @@ public final class OsUtils {
 
     /**
      * Get PID list for a given parent PID.
-     *
      * @param parentPid PPID
      * @return PID list
      */
@@ -610,7 +605,6 @@ public final class OsUtils {
 
     /**
      * Kill process tree.
-     *
      * @param rootPid PID of the root process
      */
     private static void killProcessTree(String rootPid) {
@@ -632,7 +626,6 @@ public final class OsUtils {
 
     /**
      * Create directory.
-     *
      * @param dir {@link Path}
      * @return {@link Path}
      */
@@ -641,7 +634,7 @@ public final class OsUtils {
             try {
                 Files.createDirectories(dir);
             } catch (IOException e) {
-                throw new IllegalStateException(String.format("Cannot create directory %s", dir));
+                throw new IllegalStateException(String.format("Cannot create directory %s",dir));
             }
         }
         return dir;
@@ -649,7 +642,6 @@ public final class OsUtils {
 
     /**
      * Create file.
-     *
      * @param file {@link Path}
      * @return {@link Path}
      */
@@ -669,7 +661,6 @@ public final class OsUtils {
 
     /**
      * Recursively delete files and directories.
-     *
      * @param path {@link Path}
      */
     @SuppressWarnings({"java:S4042", "java:S899"})
@@ -686,7 +677,6 @@ public final class OsUtils {
 
     /**
      * Copy {@link InputStream} to {@link OutputStream}.
-     *
      * @param input  {@link InputStream}
      * @param output {@link OutputStream}
      * @throws IOException read or write
@@ -700,19 +690,67 @@ public final class OsUtils {
     }
 
     /**
-     * Copy file via {@link FileChannel}.
-     * @param source file
-     * @param target file
-     * @return number of bytes transferred
-     * @throws IOException copy
-     * Best performance among peers FileInput(Output)Stream or {@link Files#copy(Path, OutputStream)}
-     * @see <a href="https://stackoverflow.com/a/50602790">Stackoverflow</a>
+     * Is Process running?.
+     * @param pidStr Process ID string
+     * @return is running?
      */
-    public static long copyFileViaChannel(Path source, Path target) throws IOException {
-        createFile(target);
-        try (FileChannel inChannel = (new FileInputStream(source.toFile())).getChannel();
-             FileChannel outChannel = (new FileOutputStream(target.toFile())).getChannel()) {
-            return inChannel.transferTo(0, source.toFile().length(), outChannel);
+    public static boolean isProcessAlive(String pidStr) {
+        String command = "";
+        if (isWmicWindows()) {
+            command = "wmic process where (processid = " + pidStr + ") get processid";
+        } else if (isLinux()) {
+            command = "ps -p " + pidStr + " --format pid";
+        }
+        return isProcessRunning(pidStr, command);
+    }
+
+    private static boolean isProcessRunning(String pid, String command) {
+        OsCommandWrapper wrapper = new OsCommandWrapper(command);
+        execute(wrapper);
+        if (wrapper.isOK()) {
+            String expected = pid;
+            String actual = wrapper.getOutputString();
+            return !isBlank(actual) && actual.contains(expected);
+        }
+        return false;
+    }
+
+    /**
+     * Получить список PID экземпляров процесса по его имени.
+     * @param processName имя процесса
+     * @return список PID экземпляров процесса
+     */
+    public static List<String> getProcessIdByProcessName(String processName) {
+        List<String> result = new ArrayList<>();
+        if (isLinux()) {
+            result = execute("pgrep -f " + processName).getOutput();
+        }
+        if (isWmicWindows()) {
+            List<String> raw = execute("wmic process where \"name like \'%" + processName + "%\'\" get processid").getOutput();
+            if (raw.size() > 2) {
+                for (int i = FIRST_PROCESS_ID_INDEX; i < raw.size(); i++) {
+                    if (!isBlank(raw.get(i).trim())) {
+                        result.add(raw.get(i).trim());
+                    }
+                }
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Use JDK 9+ {@link InputStream#transferTo(OutputStream)} to get a {@link String} out of {@link InputStream}.
+     * @param inputStream {@link InputStream}
+     * @param charset {@link Charset}
+     * @return {@link String} в {@link Charset}
+     * @throws IOException copy
+     * Will not {@link InputStream#close()}
+     */
+    public static String inputStreamToStringJdk9Plus(InputStream inputStream, Charset charset) throws IOException {
+        try (ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream()) {
+            inputStream.transferTo(byteArrayOutputStream);
+            byteArrayOutputStream.flush();
+            return byteArrayOutputStream.toString(charset);
         }
     }
 }
