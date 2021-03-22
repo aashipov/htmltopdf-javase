@@ -70,7 +70,7 @@ public class CommonHandler implements HttpHandler {
                         //look for header
                         List<Integer> headerEnds = indexesOf(mm.payload, DOUBLE_DELIMITER, startPart, endPart);
                         int headerEnd = !headerEnds.isEmpty() ? headerEnds.get(0) : -1;
-                        if (headerEnd > 0 && (headerEnd - startPart) > 0 && (headerEnd - startPart) < mm.payload.length) {
+                        if (headerEnd > 0) {
                             String header = new String(mm.payload, startPart, (headerEnd - startPart), DEFAULT_CHARSET);
                             // extract name from header
                             int nameIndex = header.indexOf(FILENAME_HEADER_LOOKUP);
