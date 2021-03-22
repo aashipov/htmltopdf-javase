@@ -322,7 +322,7 @@ public final class OsUtils {
      * Assume OS console codepage name.
      * @return codepage name
      */
-    private static Charset getConsoleCodepage() {
+    public static Charset getConsoleCodepage() {
         if (isWindows()) {
             return Charset.forName(WINDOWS_1251_CHARSET_NAME);
         } else {
@@ -737,21 +737,5 @@ public final class OsUtils {
             }
         }
         return result;
-    }
-
-    /**
-     * Use JDK 9+ {@link InputStream#transferTo(OutputStream)} to get a {@link String} out of {@link InputStream}.
-     * @param inputStream {@link InputStream}
-     * @param charset {@link Charset}
-     * @return {@link String} в {@link Charset}
-     * @throws IOException copy
-     * Will not {@link InputStream#close()}
-     */
-    public static String inputStreamToStringJdk9Plus(InputStream inputStream, Charset charset) throws IOException {
-        try (ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream()) {
-            inputStream.transferTo(byteArrayOutputStream);
-            byteArrayOutputStream.flush();
-            return byteArrayOutputStream.toString(charset);
-        }
     }
 }
