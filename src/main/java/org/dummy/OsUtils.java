@@ -23,6 +23,9 @@ public final class OsUtils {
 
     private static final Logger LOG = Logger.getLogger(OsUtils.class.getSimpleName());
 
+    private static final ExecutorService OS_CMD_EXECUTOR_SERVICE =
+            Executors.newWorkStealingPool(Math.max(Runtime.getRuntime().availableProcessors(), 2) * 8);
+
     private static final String ESCAPED_DOUBLE_QUOTATION_MARK = "\"";
     private static final String ESCAPED_SINGLE_QUOTATION_MARK = "\'";
     public static final String DELIMITER_SPACE = " ";
@@ -93,14 +96,15 @@ public final class OsUtils {
      * @param charset charset
      * @param inout List of String
      */
-    private static void inputStreamToListOfStrings(InputStream source, Charset charset, List<String> inout) {
+    public static void inputStreamToListOfStrings(InputStream source, Charset charset, List<String> inout) {
         String line;
-        try (BufferedReader ir = new BufferedReader(new InputStreamReader(source, charset))) {
-            while ((line = ir.readLine()) != null) {
+        try (InputStreamReader inputStreamReader = new InputStreamReader(source, charset);
+             BufferedReader bufferedReader = new BufferedReader(inputStreamReader)) {
+            while ((line = bufferedReader.readLine()) != null) {
                 inout.add(line);
             }
         } catch (IOException e) {
-            LOG.log(Level.FINE, "Error reading input stream", e);
+            // no interest in
         }
     }
 
@@ -509,8 +513,7 @@ public final class OsUtils {
      */
     @SuppressWarnings("java:S135")
     public static void executeAsync(OsCommandWrapper wrapper) {
-        ExecutorService service = Executors.newSingleThreadExecutor();
-        Future<Void> future = service.submit(new OsCommandCallable(wrapper));
+        Future<Void> future = OS_CMD_EXECUTOR_SERVICE.submit(new OsCommandCallable(wrapper));
         try {
             //bypass of future.get(<timeout>) on MS Windows
             while (true) {
@@ -536,8 +539,6 @@ public final class OsUtils {
             }
             future.cancel(true);
             Thread.currentThread().interrupt();
-        } finally {
-            service.shutdownNow();
         }
     }
 
