@@ -14,14 +14,14 @@ import static org.dummy.OsUtils.deleteFilesAndDirectories;
  */
 public class App {
     private static final int PORT = 8080;
+    private static final ExecutorService HTTP_EXECUTOR_SERVICE =
+            Executors.newWorkStealingPool(Math.max(Runtime.getRuntime().availableProcessors(), 2) * 8);
 
     public static void main(String[] args) throws IOException {
         deleteFilesAndDirectories(TMP_DIR);
         HttpServer server = HttpServer.create(new InetSocketAddress(PORT), 0);
         server.createContext("/", new CommonHandler());
-        ExecutorService executorService =
-                Executors.newFixedThreadPool(Math.max(Runtime.getRuntime().availableProcessors(), 2) * 8);
-        server.setExecutor(executorService);
+        server.setExecutor(HTTP_EXECUTOR_SERVICE);
         server.start();
     }
 }
