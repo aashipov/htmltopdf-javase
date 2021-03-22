@@ -85,6 +85,22 @@ class OsUtilsTest {
         }
     }
 
+    /**
+     * Use JDK 9+ {@link InputStream#transferTo(OutputStream)} to get a {@link String} out of {@link InputStream}.
+     * @param inputStream {@link InputStream}
+     * @param charset {@link Charset}
+     * @return {@link String} в {@link Charset}
+     * @throws IOException copy
+     * Will not {@link InputStream#close()}
+     */
+    private static String inputStreamToStringJdk9Plus(InputStream inputStream, Charset charset) throws IOException {
+        try (ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream()) {
+            inputStream.transferTo(byteArrayOutputStream);
+            byteArrayOutputStream.flush();
+            return byteArrayOutputStream.toString(charset);
+        }
+    }
+
     @Disabled("proof of concept")
     @Test
     void whyOsUtils() throws IOException, InterruptedException {
@@ -122,22 +138,6 @@ class OsUtilsTest {
                         inputStreamToStringJdk9Plus(process.getErrorStream(), getConsoleCodepage());
                     },
                     "Stream closed");
-        }
-    }
-
-    /**
-     * Use JDK 9+ {@link InputStream#transferTo(OutputStream)} to get a {@link String} out of {@link InputStream}.
-     * @param inputStream {@link InputStream}
-     * @param charset {@link Charset}
-     * @return {@link String} в {@link Charset}
-     * @throws IOException copy
-     * Will not {@link InputStream#close()}
-     */
-    private static String inputStreamToStringJdk9Plus(InputStream inputStream, Charset charset) throws IOException {
-        try (ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream()) {
-            inputStream.transferTo(byteArrayOutputStream);
-            byteArrayOutputStream.flush();
-            return byteArrayOutputStream.toString(charset);
         }
     }
 }
