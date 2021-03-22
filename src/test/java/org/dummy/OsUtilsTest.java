@@ -104,7 +104,7 @@ class OsUtilsTest {
     @Disabled("proof of concept")
     @Test
     void whyOsUtils() throws IOException, InterruptedException {
-        final long timeout = 10L;
+        final long timeout = 3L;
         ProcessBuilder processBuilder = new ProcessBuilder().command(translateCommandline(get30SecondsSleepCmdText()));
         Process process = processBuilder.start();
         if (!process.waitFor(timeout, TimeUnit.SECONDS)) {
@@ -131,13 +131,13 @@ class OsUtilsTest {
                     () -> {
                         inputStreamToStringJdk9Plus(process.getInputStream(), getConsoleCodepage());
                     },
-                    "Stream closed");
+                    "Input Stream closed");
             Assertions.assertThrows(
                     IOException.class,
                     () -> {
                         inputStreamToStringJdk9Plus(process.getErrorStream(), getConsoleCodepage());
                     },
-                    "Stream closed");
+                    "Error Stream closed");
         }
     }
 }
