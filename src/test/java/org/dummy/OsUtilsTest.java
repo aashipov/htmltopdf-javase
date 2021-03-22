@@ -78,7 +78,7 @@ class OsUtilsTest {
     }
 
     @Test
-    public void isProcessAliveTest(){
+    void isProcessAliveTest(){
         List<String> javaPids = getProcessIdByProcessName("java");
         for (String pid : javaPids) {
             assertTrue(isProcessAlive(pid), "Every instance of java is running");
