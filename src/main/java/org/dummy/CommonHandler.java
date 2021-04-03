@@ -46,7 +46,7 @@ public class CommonHandler implements HttpHandler {
     private static final char SINGLE_QUOTATION_MARK = '\'';
 
     @Override
-    public void handle(HttpExchange httpExchange) throws IOException {
+    public void handle(HttpExchange httpExchange) {
         String url = httpExchange.getRequestURI().toString();
         if (url.contains(CHROMIUM) || url.contains(HTML)) {
             try {

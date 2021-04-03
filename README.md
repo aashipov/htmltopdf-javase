@@ -1,6 +1,6 @@
 ### HTML to PDF ###
 
-https://github.com/aashipov/htmltopdf twin, implemented in JavaSE (undertow)
+https://github.com/aashipov/htmltopdf twin, implemented in JavaSE
 
 Expects chromium executable at /usr/bin/chromium. Use chromium.executable system property to override
 
