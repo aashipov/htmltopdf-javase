@@ -127,7 +127,7 @@ public final class HtmlToPdfUtils {
          * HTML to PDF.
          */
         public void htmlToPdf() {
-            if (Boolean.TRUE.equals(this.getChromium())) {
+            if (Boolean.TRUE.equals(this.chromium)) {
                 try {
                     Page page = browser.newPage();
                     page.setDefaultTimeout(MAX_EXECUTE_TIME);
@@ -155,71 +155,8 @@ public final class HtmlToPdfUtils {
             }
         }
 
-        public PaperSize getPaperSize() {
-            return paperSize;
-        }
-
-        public PrinterOptions setPaperSize(PaperSize paperSize) {
-            this.paperSize = paperSize;
-            return this;
-        }
-
-        public boolean isLandscape() {
-            return landscape;
-        }
-
-        public PrinterOptions setLandscape(boolean landscape) {
-            this.landscape = landscape;
-            return this;
-        }
-
-        public String getLeft() {
-            return left;
-        }
-
-        public PrinterOptions setLeft(String left) {
-            this.left = left;
-            return this;
-        }
-
-        public String getRight() {
-            return right;
-        }
-
-        public PrinterOptions setRight(String right) {
-            this.right = right;
-            return this;
-        }
-
-        public String getTop() {
-            return top;
-        }
-
-        public PrinterOptions setTop(String top) {
-            this.top = top;
-            return this;
-        }
-
-        public String getBottom() {
-            return bottom;
-        }
-
-        public PrinterOptions setBottom(String bottom) {
-            this.bottom = bottom;
-            return this;
-        }
-
         public Path getWorkdir() {
             return workdir;
-        }
-
-        public Boolean getChromium() {
-            return chromium;
-        }
-
-        public PrinterOptions setChromium(Boolean chromium) {
-            this.chromium = chromium;
-            return this;
         }
 
         public OsCommandWrapper getWrapper() {
@@ -283,13 +220,13 @@ public final class HtmlToPdfUtils {
         public void printoutSettings(String url) {
             if (!isBlank(url)) {
                 if (matches(A_3_PAPER_SIZE_NAME, url)) {
-                    this.setPaperSize(PaperSize.A3);
+                    this.paperSize = PaperSize.A3;
                 }
                 if (matches(LANDSCAPE_REGEX, url)) {
-                    this.setLandscape(true);
+                    this.landscape = true;
                 }
                 if (matches(CHROMIUM_REGEX, url)) {
-                    this.setChromium(Boolean.TRUE);
+                    this.chromium = Boolean.TRUE;
                 }
                 String marginNameWithDigits;
                 String marginDigits;
@@ -307,16 +244,16 @@ public final class HtmlToPdfUtils {
                             marginDigits = found.get(0);
                             if (!isBlank(marginDigits)) {
                                 if (LEFT_MARGIN_NAME.equals(marginName)) {
-                                    this.setLeft(marginDigits);
+                                    this.left = marginDigits;
                                 }
                                 if (RIGHT_MARGIN_NAME.equals(marginName)) {
-                                    this.setRight(marginDigits);
+                                    this.right = marginDigits;
                                 }
                                 if (TOP_MARGIN_NAME.equals(marginName)) {
-                                    this.setTop(marginDigits);
+                                    this.top = marginDigits;
                                 }
                                 if (BOTTOM_MARGIN_NAME.equals(marginName)) {
-                                    this.setBottom(marginDigits);
+                                    this.bottom = marginDigits;
                                 }
                             }
                         }
@@ -341,36 +278,19 @@ public final class HtmlToPdfUtils {
             sj.add("--print-media-type");
             sj.add("--no-stop-slow-scripts");
             sj.add("--disable-smart-shrinking");
-
-            if (!isBlank(this.getLeft())) {
-                sj.add("--margin-left");
-                sj.add(this.getLeft());
-            }
-            if (!isBlank(this.getRight())) {
-                sj.add("--margin-right");
-                sj.add(this.getRight());
-            }
-            if (!isBlank(this.getTop())) {
-                sj.add("--margin-top");
-                sj.add(this.getTop());
-            }
-            if (!isBlank(this.getBottom())) {
-                sj.add("--margin-bottom");
-                sj.add(this.getBottom());
-            }
-
-            if (null != this.getPaperSize()) {
-                if (!isBlank(this.getPaperSize().getWidth())) {
-                    sj.add("--page-width");
-                    sj.add(this.getPaperSize().getWidth());
-                }
-                if (!isBlank(this.getPaperSize().getHeight())) {
-                    sj.add("--page-height");
-                    sj.add(this.getPaperSize().getHeight());
-                }
-            }
-
-            if (this.isLandscape()) {
+            sj.add("--margin-left");
+            sj.add(this.left);
+            sj.add("--margin-right");
+            sj.add(this.right);
+            sj.add("--margin-top");
+            sj.add(this.top);
+            sj.add("--margin-bottom");
+            sj.add(this.bottom);
+            sj.add("--page-width");
+            sj.add(this.paperSize.width);
+            sj.add("--page-height");
+            sj.add(this.paperSize.height);
+            if (this.landscape) {
                 sj.add("--orientation");
                 sj.add("landscape");
             }
@@ -381,13 +301,13 @@ public final class HtmlToPdfUtils {
 
         private PDFOptions buildChromiumPDFOptions() {
             PDFOptions opts = new PDFOptions();
-            opts.setLandscape(this.isLandscape());
-            opts.setWidth(this.getPaperSize().getWidth() + MILLIMETER_ACRONYM);
-            opts.setHeight(this.getPaperSize().getHeight() + MILLIMETER_ACRONYM);
-            opts.getMargin().setTop(this.getTop() + MILLIMETER_ACRONYM);
-            opts.getMargin().setRight(this.getRight() + MILLIMETER_ACRONYM);
-            opts.getMargin().setBottom(this.getBottom() + MILLIMETER_ACRONYM);
-            opts.getMargin().setLeft(this.getLeft() + MILLIMETER_ACRONYM);
+            opts.setLandscape(this.landscape);
+            opts.setWidth(this.paperSize.width + MILLIMETER_ACRONYM);
+            opts.setHeight(this.paperSize.height + MILLIMETER_ACRONYM);
+            opts.getMargin().setTop(this.top + MILLIMETER_ACRONYM);
+            opts.getMargin().setRight(this.right + MILLIMETER_ACRONYM);
+            opts.getMargin().setBottom(this.bottom + MILLIMETER_ACRONYM);
+            opts.getMargin().setLeft(this.left + MILLIMETER_ACRONYM);
             return opts;
         }
     }
@@ -400,8 +320,8 @@ public final class HtmlToPdfUtils {
         A3("297", "420")
         ;
 
-        private final String width;
-        private final String height;
+        protected final String width;
+        protected final String height;
 
         /**
          * Constructor.
@@ -411,14 +331,6 @@ public final class HtmlToPdfUtils {
         PaperSize(String width, String height) {
             this.width = width;
             this.height = height;
-        }
-
-        public String getWidth() {
-            return width;
-        }
-
-        public String getHeight() {
-            return height;
         }
     }
 }
