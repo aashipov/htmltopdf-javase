@@ -143,9 +143,9 @@ public final class HtmlToPdfUtils {
                 }
             } else {
                 this.buildOsCommandWrapper();
-                executeAsync(this.getWrapper());
-                if (!this.getWrapper().isOK()) {
-                    LOG.info(this.getWrapper().getOutputString() + DELIMITER_LF + this.getWrapper().getErrorString());
+                executeAsync(this.wrapper);
+                if (!this.wrapper.isOK()) {
+                    LOG.info(this.wrapper.getOutputString() + DELIMITER_LF + this.wrapper.getErrorString());
                 }
                 try {
                     this.pdf = Files.readAllBytes(this.getWorkdir().resolve(RESULT_PDF));
@@ -157,10 +157,6 @@ public final class HtmlToPdfUtils {
 
         public Path getWorkdir() {
             return workdir;
-        }
-
-        public OsCommandWrapper getWrapper() {
-            return wrapper;
         }
 
         private PrinterOptions buildOsCommandWrapper() {
@@ -320,8 +316,8 @@ public final class HtmlToPdfUtils {
         A3("297", "420")
         ;
 
-        protected final String width;
-        protected final String height;
+        private final String width;
+        private final String height;
 
         /**
          * Constructor.
