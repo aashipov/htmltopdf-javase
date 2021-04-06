@@ -118,9 +118,11 @@ public final class HtmlToPdfUtils {
 
         /**
          * Constructor.
+         * @param url url with converter name and printout settings
          */
-        public PrinterOptions() {
-            //
+        public PrinterOptions(String url) {
+            this.printoutSettings(url);
+            createDirectory(this.workdir);
         }
 
         /**
@@ -159,10 +161,23 @@ public final class HtmlToPdfUtils {
             return workdir;
         }
 
+        public void clearWorkdir() {
+            deleteFilesAndDirectories(this.workdir);
+        }
+
         private PrinterOptions buildOsCommandWrapper() {
             this.wrapper = new OsUtils.OsCommandWrapper(this.buildWkhtmltopdfCmd());
             this.wrapper.setWorkdir(this.workdir).setMaxExecuteTime(MAX_EXECUTE_TIME);
             return this;
+        }
+
+        /**
+         * Is there an index.html file in workdir?.
+         * @return is there?
+         */
+        public boolean isIndexHtml() {
+            Path indexHtml = this.getWorkdir().resolve(INDEX_HTML);
+            return indexHtml.toFile().exists() && indexHtml.toFile().canRead();
         }
 
         /**
@@ -213,7 +228,7 @@ public final class HtmlToPdfUtils {
          * @param url request URL
          */
         @SuppressWarnings("java:S3776")
-        public void printoutSettings(String url) {
+        private void printoutSettings(String url) {
             if (!isBlank(url)) {
                 if (matches(A_3_PAPER_SIZE_NAME, url)) {
                     this.paperSize = PaperSize.A3;

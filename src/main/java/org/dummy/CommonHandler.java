@@ -45,6 +45,7 @@ public class CommonHandler implements HttpHandler {
     private static final char DOUBLE_QUOTATION_MARK = '"';
     private static final char SINGLE_QUOTATION_MARK = '\'';
 
+    @SuppressWarnings("java:S3776")
     @Override
     public void handle(HttpExchange httpExchange) {
         String url = httpExchange.getRequestURI().toString();
@@ -104,10 +105,8 @@ public class CommonHandler implements HttpHandler {
     }
 
     private void saveOnDiskAndConvertToPdf(HttpExchange httpExchange, MultipartMessage mm) {
-        HtmlToPdfUtils.PrinterOptions po = new HtmlToPdfUtils.PrinterOptions();
         String url = httpExchange.getRequestURI().toString();
-        po.printoutSettings(url);
-        createDirectory(po.getWorkdir());
+        HtmlToPdfUtils.PrinterOptions po = new HtmlToPdfUtils.PrinterOptions(url);
         Path file;
         if (mm.filenames.size() != mm.fileStartIdxs.size()
                 || mm.fileStartIdxs.size() != mm.fileEndIdxs.size()
@@ -122,8 +121,7 @@ public class CommonHandler implements HttpHandler {
                 textResponse(httpExchange, INTERNAL_SERVER_ERROR, "Error saving multipart");
             }
         }
-        Path indexHtml = po.getWorkdir().resolve(INDEX_HTML);
-        if (indexHtml.toFile().exists() && indexHtml.toFile().canRead()) {
+        if (po.isIndexHtml()) {
             po.htmlToPdf();
             if (po.isPdf()) {
                 try (OutputStream outputStream = httpExchange.getResponseBody()) {
@@ -143,7 +141,7 @@ public class CommonHandler implements HttpHandler {
         } else {
             textResponse(httpExchange, INTERNAL_SERVER_ERROR, "No " + INDEX_HTML);
         }
-        deleteFilesAndDirectories(po.getWorkdir());
+        po.clearWorkdir();
     }
 
     private static byte[] requestBody(HttpExchange httpExchange) {
