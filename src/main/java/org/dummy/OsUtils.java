@@ -121,6 +121,7 @@ public final class OsUtils {
         private final Timestamp start = Timestamp.from(Instant.now());
         private Integer maxExecuteTime = null;
         private Path workdir = null;
+        private boolean translateCmd = false;
 
         /**
          * Constructor.
@@ -179,6 +180,15 @@ public final class OsUtils {
 
         public OsCommandWrapper setWorkdir(Path workdir) {
             this.workdir = workdir;
+            return this;
+        }
+
+        public boolean isTranslateCmd() {
+            return translateCmd;
+        }
+
+        public OsCommandWrapper setTranslateCmd(boolean translateCmd) {
+            this.translateCmd = translateCmd;
             return this;
         }
 
@@ -460,7 +470,7 @@ public final class OsUtils {
      */
     public static void execute(OsCommandWrapper wrapper) {
         Process p = null;
-        String[] callee = translateCommandline(wrapper.getCmd());
+        String[] callee = wrapper.isTranslateCmd() ? translateCommandline(wrapper.getCmd()) : wrapper.getCmd().split(DELIMITER_SPACE);
         try {
             if (null == wrapper.getWorkdir()) {
                 p = Runtime.getRuntime().exec(callee);
