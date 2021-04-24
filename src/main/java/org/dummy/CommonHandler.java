@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import static org.dummy.EmptinessUtils.isBlank;
 import static org.dummy.HtmlToPdfUtils.INDEX_HTML;
 import static org.dummy.HtmlToPdfUtils.RESULT_PDF;
 import static org.dummy.OsUtils.*;
@@ -53,7 +54,7 @@ public class CommonHandler implements HttpHandler {
             try {
                 Headers headers = httpExchange.getRequestHeaders();
                 String contentType = headers.getFirst(CONTENT_TYPE);
-                if (contentType.startsWith(MULTIPART)) {
+                if (!isBlank(contentType) && contentType.startsWith(MULTIPART)) {
                     //found form data
                     String boundary = contentType.substring(contentType.indexOf(BOUNDARY) + BOUNDARY.length());
                     byte[] boundaryBytes = (boundary).getBytes(DEFAULT_CHARSET);
