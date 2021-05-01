@@ -29,18 +29,6 @@ spec:
         ports:
         - containerPort: 8080
           protocol: TCP
-        livenessProbe:
-          httpGet:
-            path: /health
-            port: 8080
-          initialDelaySeconds: 5
-          periodSeconds: 3
-        readinessProbe:
-          httpGet:
-            path: /health
-            port: 8080
-          initialDelaySeconds: 5
-          periodSeconds: 3
         volumeMounts:
         - mountPath: /dummy/tmp
           name: tmp-volume
@@ -55,12 +43,15 @@ metadata:
   name: htmltopdf-javase
   namespace: htmltopdf-javase
 spec:
+  type: ClusterIP
+  #type: NodePort
   selector:
     app: htmltopdf-javase
   ports:
     - protocol: TCP
       port: 8080
       targetPort: 8080
+      #nodePort: 30080
 
 ---
 apiVersion: networking.k8s.io/v1
