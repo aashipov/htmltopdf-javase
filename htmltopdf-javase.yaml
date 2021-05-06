@@ -29,6 +29,10 @@ spec:
         ports:
         - containerPort: 8080
           protocol: TCP
+        securityContext:
+          capabilities:
+            drop:
+              - all
         volumeMounts:
         - mountPath: /dummy/tmp
           name: tmp-volume
