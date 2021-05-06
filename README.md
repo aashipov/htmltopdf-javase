@@ -10,7 +10,7 @@ Expects chromium executable at /usr/bin/chromium. Use chromium.executable system
 
 If you’re running Docker on Linux use tmpfs to store incoming files and result.pdf:
 
-```docker pull aashipov/htmltopdf-javase:pure && docker run -d --name=htmltopdf -p 8080:8080 --tmpfs /dummy/tmp aashipov/htmltopdf-javase:pure```
+```docker pull aashipov/htmltopdf-javase:pure && docker run -d --cap-drop=ALL --name=htmltopdf -p 8080:8080 --tmpfs=/dummy/tmp aashipov/htmltopdf-javase:pure```
 
 OR
 
