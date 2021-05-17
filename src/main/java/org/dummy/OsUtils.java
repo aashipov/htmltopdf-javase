@@ -468,6 +468,7 @@ public final class OsUtils {
      * Execute wrapped OS command in the same thread.
      * @param wrapper wrapper
      */
+    @SuppressWarnings("java:S3776")
     public static void execute(OsCommandWrapper wrapper) {
         Process p = null;
         String[] callee = wrapper.isTranslateCmd() ? translateCommandline(wrapper.getCmd()) : wrapper.getCmd().split(DELIMITER_SPACE);
