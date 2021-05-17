@@ -15,3 +15,5 @@ down.bash
 .settings
 .vscode
 .config
+.gradle
+build

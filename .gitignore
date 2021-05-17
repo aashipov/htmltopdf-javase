@@ -23,3 +23,5 @@
 .settings
 .vscode
 /.config/
+/.gradle/
+/build/
