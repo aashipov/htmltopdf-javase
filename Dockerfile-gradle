@@ -1,4 +1,4 @@
-FROM aashipov/htmltopdf:buildbed AS builder
+FROM aashipov/docker:builder AS builder
 ARG BUILD_DIR=/dummy/build
 USER root
 WORKDIR ${BUILD_DIR}
@@ -7,7 +7,7 @@ USER dummy
 WORKDIR ${BUILD_DIR}
 RUN gradle build shadowJar --no-daemon -Dfile.encoding=UTF-8
 
-FROM aashipov/htmltopdf:base
+FROM aashipov/docker:base
 ARG BUILD_DIR=/dummy/build
 USER root
 COPY --chown=dummy:dummy --from=builder ${BUILD_DIR}/build/libs/htmltopdf*shadow.jar /dummy/app.jar
