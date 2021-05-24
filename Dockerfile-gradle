@@ -7,7 +7,7 @@ USER dummy
 WORKDIR ${BUILD_DIR}
 RUN gradle build shadowJar --no-daemon -Dfile.encoding=UTF-8
 
-FROM aashipov/docker:base
+FROM aashipov/docker:wknch
 ARG BUILD_DIR=/dummy/build
 USER root
 COPY --chown=dummy:dummy --from=builder ${BUILD_DIR}/build/libs/htmltopdf*shadow.jar /dummy/app.jar

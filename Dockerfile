@@ -7,7 +7,7 @@ USER dummy
 WORKDIR ${BUILD_DIR}
 RUN mvn clean package -Dmaven.wagon.http.ssl.insecure=true -Dmaven.wagon.http.ssl.allowall=true -Dmaven.wagon.http.ssl.ignore.validity.dates=true
 
-FROM aashipov/docker:base
+FROM aashipov/docker:wknch
 ARG BUILD_DIR=/dummy/build
 USER root
 COPY --chown=dummy:dummy --from=builder ${BUILD_DIR}/target/htmltopdf*shaded.jar /dummy/app.jar
