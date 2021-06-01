@@ -121,6 +121,7 @@ public final class OsUtils {
         private final Timestamp start = Timestamp.from(Instant.now());
         private Integer maxExecuteTime = null;
         private Path workdir = null;
+        private boolean translateCmd = false;
 
         /**
          * Constructor.
@@ -179,6 +180,15 @@ public final class OsUtils {
 
         public OsCommandWrapper setWorkdir(Path workdir) {
             this.workdir = workdir;
+            return this;
+        }
+
+        public boolean isTranslateCmd() {
+            return translateCmd;
+        }
+
+        public OsCommandWrapper setTranslateCmd(boolean translateCmd) {
+            this.translateCmd = translateCmd;
             return this;
         }
 
@@ -458,9 +468,10 @@ public final class OsUtils {
      * Execute wrapped OS command in the same thread.
      * @param wrapper wrapper
      */
+    @SuppressWarnings("java:S3776")
     public static void execute(OsCommandWrapper wrapper) {
         Process p = null;
-        String[] callee = translateCommandline(wrapper.getCmd());
+        String[] callee = wrapper.isTranslateCmd() ? translateCommandline(wrapper.getCmd()) : wrapper.getCmd().split(DELIMITER_SPACE);
         try {
             if (null == wrapper.getWorkdir()) {
                 p = Runtime.getRuntime().exec(callee);
@@ -507,37 +518,35 @@ public final class OsUtils {
         return wrapper;
     }
 
+    private static void timeoutAndCleanUp(OsCommandWrapper wrapper, Future<Void> future) {
+        wrapper.timeout();
+        future.cancel(true);
+        if (wrapper.hasPid()) {
+            killProcessTree(String.valueOf(wrapper.getPid()));
+        }
+    }
+
     /**
      * Execute OS command in another thread.
      * @param wrapper {@link OsCommandWrapper}
      */
-    @SuppressWarnings("java:S135")
     public static void executeAsync(OsCommandWrapper wrapper) {
         Future<Void> future = OS_CMD_EXECUTOR_SERVICE.submit(new OsCommandCallable(wrapper));
         try {
-            //bypass of future.get(<timeout>) on MS Windows
-            while (true) {
-                if (future.isDone()) {
-                    break;
-                } else {
-                    TimeUnit.MILLISECONDS.sleep(PROCESS_INNER_STATE_CHANGE_TIMEOUT);
-                    if (wrapper.isOverdue()) {
-                        future.cancel(true);
-                        wrapper.timeout();
-                        if (wrapper.hasPid()) {
-                            killProcessTree(String.valueOf(wrapper.getPid()));
-                        }
-                        break;
-                    }
-                }
+            if (null != wrapper.getMaxExecuteTime()) {
+                future.get(wrapper.getMaxExecuteTime(), TimeUnit.MILLISECONDS);
+            } else {
+                future.get();
             }
-            wrapper.successOutOfRunning();
+            if (wrapper.isOverdue() || !future.isDone()) {
+                timeoutAndCleanUp(wrapper, future);
+            } else {
+                wrapper.successOutOfRunning();
+            }
+        } catch (ExecutionException | TimeoutException e) {
+            timeoutAndCleanUp(wrapper, future);
         } catch (InterruptedException e) {
-            wrapper.timeout();
-            if (wrapper.hasPid()) {
-                killProcessTree(String.valueOf(wrapper.getPid()));
-            }
-            future.cancel(true);
+            timeoutAndCleanUp(wrapper, future);
             Thread.currentThread().interrupt();
         }
     }

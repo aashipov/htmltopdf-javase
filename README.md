@@ -7,3 +7,5 @@ Expects chromium executable at /usr/bin/chromium. Use chromium.executable system
 ##### Docker, single instance #####
 
 ```docker pull aashipov/htmltopdf-javase:latest && docker run -d --rm --name=htmltopdf-javase -p 8080:8080 aashipov/htmltopdf-javase:latest```
+
+#### Master & pure branches contain viable app flavors, consider other branches obsolete draft ####  

@@ -51,7 +51,7 @@ public class HtmlToPdfHandler implements HttpHandler {
                 outputStream.write(po.getPdf());
             }
         } else {
-            internalServerError(exchange, po.getWrapper().getOutputString() + DELIMITER_LF + po.getWrapper().getErrorString());
+            internalServerError(exchange, "No " + RESULT_PDF);
         }
     }
 
@@ -66,14 +66,11 @@ public class HtmlToPdfHandler implements HttpHandler {
         // Form data is stored here
         FormData formData = exchange.getAttachment(FormDataParser.FORM_DATA);
         if (formData.iterator().hasNext()) {
-            HtmlToPdfUtils.PrinterOptions po = new HtmlToPdfUtils.PrinterOptions();
             String url = exchange.getRequestURL();
-            po.printoutSettings(url);
-            createDirectory(po.getWorkdir());
+            HtmlToPdfUtils.PrinterOptions po = new HtmlToPdfUtils.PrinterOptions(url);
             // Iterate through form data
             storeParts(formData, po);
-            Path indexHtml = po.getWorkdir().resolve(INDEX_HTML);
-            if (indexHtml.toFile().exists() && indexHtml.toFile().canRead()) {
+            if (po.isIndexHtml()) {
                 convert(exchange, po);
             } else {
                 internalServerError(exchange, INDEX_HTML_NOT_FOUND);
